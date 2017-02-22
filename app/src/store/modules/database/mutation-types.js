@@ -1,0 +1,5 @@
+export const FETCH_DATABASES = 'database/FETCH_DATABASES'
+export const FETCH_DATABASE = 'database/FETCH_DATABASE'
+export const CREATE_DATABASE = 'database/CREATE_DATABASE'
+export const DELETE_DATABASE = 'database/DELETE_DATABASE'
+export const UPDATE_DATABASE = 'database/UPDATE_DATABASE'

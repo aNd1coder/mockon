@@ -1,0 +1,6 @@
+export const FETCH_LOGS = 'log/FETCH_LOGS'
+export const APPEND_LOGS = 'log/APPEND_LOGS'
+export const FETCH_LOG = 'log/FETCH_LOG'
+export const CREATE_LOG = 'log/CREATE_LOG'
+export const DELETE_LOG = 'log/DELETE_LOG'
+export const UPDATE_LOG = 'log/UPDATE_LOG'

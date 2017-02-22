@@ -1,0 +1,5 @@
+export const FETCH_ERRORS = 'error/FETCH_ERRORS'
+export const FETCH_ERROR = 'error/FETCH_ERROR'
+export const CREATE_ERROR = 'error/CREATE_ERROR'
+export const DELETE_ERROR = 'error/DELETE_ERROR'
+export const UPDATE_ERROR = 'error/UPDATE_ERROR'

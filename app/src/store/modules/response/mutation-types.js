@@ -1,0 +1,5 @@
+export const FETCH_RESPONSES = 'response/FETCH_RESPONSES'
+export const FETCH_RESPONSE = 'response/FETCH_RESPONSE'
+export const CREATE_RESPONSE = 'response/CREATE_RESPONSE'
+export const DELETE_RESPONSE = 'response/DELETE_RESPONSE'
+export const UPDATE_RESPONSE = 'response/UPDATE_RESPONSE'

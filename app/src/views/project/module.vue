@@ -1,0 +1,269 @@
+<template>
+  <section>
+    <div class="page-header">
+      <h1 class="pull-left">接口管理</h1>
+      <el-button class="pull-right" :plain="true" type="primary" @click="handleCreate">
+        <i class="fa fa-plus-circle"></i>新增模块
+      </el-button>
+    </div>
+    <el-row v-if="modules.length > 0">
+      <el-col :span="24">
+        <ul class="modules">
+          <li v-for="module in modules" class="module">
+            <h3 class="module-name">
+              {{ module.name }}
+              <a href="javascript:;" @click="handleDelete(module)">删除</a>
+              <a href="javascript:;" @click="handleUpdate(module)">编辑</a>
+              <router-link :to="{ name: 'project-api-new', params: { code: project.code, module_id: module.id } }">新增接口</router-link>
+            </h3>
+            <ul v-if="module.api && module.api.length > 0" class="apis">
+              <li v-for="api in module.api" class="api">
+                <el-http-method :method="api.method"></el-http-method>
+                {{ api.name }}
+                {{ project.base_url + api.path }}
+                <a href="javascript:;" @click="handleApiDelete(api)">删除</a>
+                <router-link :to="{ name: 'project-api-edit', params: { code: project.code, id: api.id } }">编辑</router-link>
+                <router-link :to="{ name: 'document-view', params: { id: api.id } }">查看文档</router-link>
+              </li>
+            </ul>
+            <span v-else class="nodata">无接口信息</span>
+          </li>
+        </ul>
+      </el-col>
+    </el-row>
+    <el-nodata v-else></el-nodata>
+    <el-dialog :title="title" v-model="dialogVisible">
+      <el-form :model="module" :rules="rules" ref="module" @submit.native.prevent="handleSubmit">
+        <el-form-item label="模块名称" prop="name">
+          <el-input type="text" v-model="module.name"></el-input>
+        </el-form-item>
+        <el-form-item label="模块代码" prop="code">
+          <el-input type="text" v-model="module.code" placeholder="小写字母及数字组合，建议使用简明的英文单词，用来标识模块"></el-input>
+        </el-form-item>
+        <el-form-item label="模块描述" prop="description">
+          <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 2 }" v-model="module.description"></el-input>
+        </el-form-item>
+        <el-form-item prop="status">
+          <el-select v-model="module.status" placeholder="状态">
+            <el-option v-for="status in statusMap" :label="status.text" :value="status.value"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存</el-button>
+        </el-form-item>
+      </el-form>
+    </el-dialog>
+  </section>
+</template>
+<script type="text/babel">
+  import { mapGetters, mapActions } from 'vuex'
+  import ElHttpMethod from '../../components/http-method.vue'
+  import ElNodata from '../../components/nodata.vue'
+
+  export default {
+    components: {
+      ElHttpMethod,
+      ElNodata
+    },
+    data() {
+      return {
+        title: '',
+        dialogVisible: false,
+        disabled: false,
+        statusMap: [
+          { text: '开发中', value: '0' },
+          { text: '使用中', value: '1' }
+        ],
+        module: {
+          id: '',
+          name: '',
+          code: '',
+          description: '',
+          status: 0
+        },
+        rules: {
+          name: [
+            { required: true, message: '请输入模块名称', trigger: 'blur' }
+          ],
+          code: [
+            { required: true, message: '请输入模块代码', trigger: 'blur' }
+          ]
+        }
+      }
+    },
+    computed: mapGetters(['user', 'project', 'modules']),
+    beforeRouteEnter(to, from, next) {
+      next(async(vm) => {
+        await vm.fetchModules({ project_id: vm.project.id })
+      })
+    },
+    methods: {
+      ...mapActions([
+        'fetchModules',
+        'createModule',
+        'deleteModule',
+        'updateModule',
+        'deleteApi'
+      ]),
+      handleCreate() {
+        this.title = '新增模块'
+        this.module = {
+          id: '',
+          name: '',
+          code: '',
+          description: '',
+          status: 0
+        }
+        this.dialogVisible = true
+      },
+      handleUpdate(module) {
+        this.title = '修改模块'
+        this.dialogVisible = true
+        this.module = JSON.parse(JSON.stringify(module))
+      },
+      handleDelete(module) {
+        this.$confirm(
+          '删除模块会连同关联的数据一并删除，确定要删除?',
+          '提示',
+          { type: 'warning' }
+        ).then(async() => {
+          await this.deleteModules(module)
+
+          this.$notify.success({
+            title: '提示',
+            message: '删除成功!',
+            duration: 3000
+          })
+        }).catch(() => {
+        })
+      },
+      handleApiDelete(api) {
+        this.$confirm(
+          '删除接口会连同关联的数据一并删除，确定要删除?',
+          '提示',
+          { type: 'warning' }
+        ).then(async() => {
+          await this.deleteApi(api)
+
+          this.$notify.success({
+            title: '提示',
+            message: '删除成功!',
+            duration: 3000
+          })
+        }).catch(() => {
+        })
+      },
+      handleSubmit() {
+        this.$refs.module.validate(async(valid) => {
+          let result
+
+          if (valid) {
+            this.disabled = true
+
+            this.module.project_id = this.project.id
+
+            if (this.module.id) {
+              result = await this.updateModule(this.module)
+            } else {
+              result = await this.createModule(this.module)
+            }
+
+            this.disabled = false
+
+            if (result.code === 0) {
+              this.$notify.success({
+                title: '提示',
+                message: '保存成功！',
+                duration: 3000
+              })
+
+              this.dialogVisible = false
+            } else {
+              this.$notify.error({
+                title: '提示',
+                message: result.message,
+                duration: 3000
+              })
+            }
+          } else {
+            return false
+          }
+        })
+      }
+    }
+  }
+</script>
+<style lang="scss" scoped>
+  .modules {
+    position: relative;
+    padding: 20px;
+  }
+  .module {
+    padding-bottom: 30px;
+
+    &:hover {
+      h3 {
+        a {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    }
+
+    h3 {
+      margin-bottom: 10px;
+      font-weight: 400;
+      font-size: 16px;
+      overflow: hidden;
+
+      a {
+        display: inline-block;
+        margin-left: 10px;
+        font-size: 12px;
+        color: #999;
+        opacity: 0;
+        transition: transform .3s ease-in-out;
+        transform: translate3d(0, 50px, 0);
+
+        &:hover {
+          color: #20a0ff;
+        }
+      }
+    }
+
+    .nodata {
+      border-left: 3px solid #999;
+      padding-left: 5px;
+      font-size: 14px;
+      color: #999;
+    }
+  }
+  .apis {
+    font-size: 14px;
+  }
+  .api {
+    padding-bottom: 10px;
+    color: #666;
+
+    .el-tag {
+      margin-right: 5px;
+    }
+
+    &:hover {
+      a {
+        display: inline-block;
+      }
+    }
+
+    a {
+      display: none;
+      margin-left: 10px;
+      font-size: 12px;
+      color: #999;
+
+      &:hover {
+        color: #20a0ff;
+      }
+    }
+  }
+</style>

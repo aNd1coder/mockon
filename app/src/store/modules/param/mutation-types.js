@@ -1,0 +1,5 @@
+export const FETCH_PARAMS = 'param/FETCH_PARAMS'
+export const FETCH_PARAM = 'param/FETCH_PARAM'
+export const CREATE_PARAM = 'param/CREATE_PARAM'
+export const DELETE_PARAM = 'param/DELETE_PARAM'
+export const UPDATE_PARAM = 'param/UPDATE_PARAM'

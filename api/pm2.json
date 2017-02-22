@@ -1,0 +1,14 @@
+{
+  "apps": [{
+    "name": "Mockon",
+    "script": "www/production.js",
+    "cwd": "/Users/samgui/Workspace/github/mockon/api",
+    "max_memory_restart": "1G",
+    "autorestart": true,
+    "node_args": [],
+    "args": [],
+    "env": {
+
+    }
+  }]
+}

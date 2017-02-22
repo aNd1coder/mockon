@@ -1,0 +1,5 @@
+export const FETCH_MODULES = 'module/FETCH_MODULES'
+export const FETCH_MODULE = 'module/FETCH_MODULE'
+export const CREATE_MODULE = 'module/CREATE_MODULE'
+export const DELETE_MODULE = 'module/DELETE_MODULE'
+export const UPDATE_MODULE = 'module/UPDATE_MODULE'

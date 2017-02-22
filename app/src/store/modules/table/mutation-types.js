@@ -1,0 +1,5 @@
+export const FETCH_TABLES = 'table/FETCH_TABLES'
+export const FETCH_TABLE = 'table/FETCH_TABLE'
+export const CREATE_TABLE = 'table/CREATE_TABLE'
+export const DELETE_TABLE = 'table/DELETE_TABLE'
+export const UPDATE_TABLE = 'table/UPDATE_TABLE'

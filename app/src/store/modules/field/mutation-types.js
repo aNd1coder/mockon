@@ -1,0 +1,5 @@
+export const FETCH_FIELDS = 'field/FETCH_FIELDS'
+export const FETCH_FIELD = 'field/FETCH_FIELD'
+export const CREATE_FIELD = 'field/CREATE_FIELD'
+export const DELETE_FIELD = 'field/DELETE_FIELD'
+export const UPDATE_FIELD = 'field/UPDATE_FIELD'
