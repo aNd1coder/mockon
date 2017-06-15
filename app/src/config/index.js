@@ -1,18 +1,38 @@
 const production = process.env.NODE_ENV === 'production'
 
-export const DOMAIN = production ? 'http://api.mockon.time33.com' : 'http://127.0.0.1:8360'
+export const DOMAIN = production ? 'http://api.mockon.jd.com' : 'http://127.0.0.1:8360'
 export const API_ROOT = DOMAIN + '/v1.0'
+export const MOCK_URL = DOMAIN + '/mock/'
+export const PROXY_URL = DOMAIN + '/proxy/'
 export const UPLOAD_URL = DOMAIN + '/upload'
-export const GRAPHQL_URI = 'http://127.0.0.1:3020/graphql'; //DOMAIN + '/graphql'
 export const STATIC_URL = DOMAIN + '/static'
-export const COOKIE_DOMAIN = production ? '.time33.com' : 'localhost'
+export const COOKIE_DOMAIN = production ? '.jd.com' : 'localhost'
 export const COOKIE_EXPIRES = '1M'
-export const HTTP_METHOD = ['GET', 'POST', 'PUT', 'DELETE'] // ,'copy',  'patch', 'head', 'options', 'link', 'unlink', 'purge'
-export const RESPONSE_TYPE = ['success', 'error']
+export const HTTP_METHOD = [
+  'GET',
+  'POST',
+  'PUT',
+  'DELETE'
+] // ,'copy',  'patch', 'head', 'options', 'link', 'unlink', 'purge'
+export const RESPONSE_TYPE = {
+  'success': '成功',
+  'error': '失败'
+}
 export const PARAM_LOCATION = {
+  query: 'Query String',
+  path: 'Path (URL)',
+  body: 'Request Body',
   formData: 'Form Data',
   header: 'Request Header'
 }
+export const PARAM_TYPE = [
+  'string',
+  'int',
+  'bool',
+  'array',
+  'object',
+  'file'
+]
 export const HTTP_HEADERS = [
   'Accept',
   'Accept-Charset',
@@ -84,5 +104,8 @@ export const FORM_ENCTYPE = [
   'application/x-www-form-urlencoded',
   'multipart/form-data'
 ]
-export const DATA_SOURCE = ['mysql', 'mongodb'] // 'postgresql', 'sqlserver', 'oracle', 'access', 'sqlite'
-export const PARAM_TYPE = ['string', 'int', 'bool', 'array', 'object', 'file']
+export const DATA_SOURCE = [
+  'mysql',
+  'mongodb'
+] // 'postgresql', 'sqlserver', 'oracle', 'access', 'sqlite'
+export const FIELD_TYPE = []

@@ -13,12 +13,12 @@
     </el-form-item>
     <el-form-item prop="type">
       <el-select v-model="param.type" placeholder="参数类型">
-        <el-option v-for="type in PARAM_TYPE" :label="type" :value="type"></el-option>
+        <el-option v-for="type in PARAM_TYPE" :key="type" :label="type" :value="type"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item prop="location">
       <el-select v-model="param.location" placeholder="参数位置">
-        <el-option v-for="(label, value) in PARAM_LOCATION" :label="label" :value="value"></el-option>
+        <el-option v-for="(label, value) in PARAM_LOCATION" :key="value" :label="label" :value="value"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item prop="length">
@@ -33,11 +33,10 @@
     <el-form-item class="el-form-required" prop="required">
       <el-switch v-model="param.required" on-text="必选" off-text="可选"></el-switch>
     </el-form-item>
-    <el-form-item class="el-form-button" v-if="project.owner.id === user.id">
-      <el-button v-if="param.id || !isLast" :plain="true" type="danger" size="small" @click="handleDelete(isLast)">删除</el-button>
-      <el-button v-else :plain="true" type="danger" size="small" @click="handleCreate">新增</el-button>
+    <el-form-item class="el-form-button">
+      <el-button :disabled="!param.id" :plain="true" type="danger" size="small" @click="handleDelete()">删除</el-button>
     </el-form-item>
-    <el-form-item v-if="project.owner.id === user.id">
+    <el-form-item>
       <el-button :plain="true" :disabled="disabled" size="small" @click="handleSubmit">保存</el-button>
     </el-form-item>
   </el-form>
@@ -45,6 +44,7 @@
 <script type="text/babel">
   import Vue from 'vue'
   import { mapGetters, mapActions } from 'vuex'
+  import { showNotify, showConfirm } from '../../utils'
   import { PARAM_TYPE, PARAM_LOCATION } from '../../config'
 
   Vue.component('param-item', {
@@ -62,9 +62,9 @@
   })
 
   export default {
+    name: 'el-param',
     props: {
       response: Object,
-      isLast: Boolean,
       data: Object
     },
     data() {
@@ -89,19 +89,16 @@
       }
     },
     computed: mapGetters([
-      'user',
+      'session',
       'project',
       'api',
       'params'
     ]),
-    watch: {
-      api: {
-        handler: 'loadData',
-        deep: true
-      }
-    },
     mounted() {
-      this.loadData()
+      if (this.data && this.data.id) {
+        this.param = JSON.parse(JSON.stringify(this.data))
+        this.param.required = !!this.param.required
+      }
     },
     methods: {
       ...mapActions([
@@ -109,11 +106,9 @@
         'createParam',
         'deleteParam',
         'updateParam',
-        'appendApiResponseParam',
-        'deleteApiResponseParam'
       ]),
       handleSelect(item) {
-        if (this.param.id === '') {
+        if (this.param.id === '') { // 第一次选
           delete item.id
           delete item.created_at
           delete item.modified_at
@@ -121,41 +116,14 @@
           this.param = JSON.parse(JSON.stringify(item))
         }
       },
-      handleCreate() {
-        this.appendApiResponseParam({
-          param_id: new Date().getTime(),
-          name: '',
-          type: '',
-          length: '',
-          default_value: '',
-          required: false,
-          description: '',
-          api_id: this.api.id,
-          response_id: this.response.id
+      handleDelete() {
+        showConfirm(this, '确定删除该参数?', async (ctx) => {
+          let result = await ctx.deleteParam(ctx.data)
+          showNotify(ctx, result)
         })
       },
-      handleDelete() {
-        if (this.data.id) {
-          this.$confirm(
-            '确定删除该字段?',
-            '提示',
-            { type: 'warning' }
-          ).then(async() => {
-            await this.deleteParam(this.data)
-
-            this.$notify.success({
-              title: '提示',
-              message: '删除成功!',
-              duration: 3000
-            })
-          }).catch(() => {
-          })
-        } else {
-          this.deleteApiResponseParam(this.data)
-        }
-      },
       handleSubmit() {
-        this.$refs.param.validate(async(valid) => {
+        this.$refs.param.validate(async (valid) => {
           if (valid) {
             let result
 
@@ -171,32 +139,25 @@
               result = await this.createParam(this.param)
             }
 
-            delete this.param.param_id
+            if (this.param.id) {
+              this.param = JSON.parse(JSON.stringify(this.param))
+            } else {
+              this.param = {
+                id: '',
+                name: '',
+                type: '',
+                length: '',
+                default_value: '',
+                required: false,
+                description: ''
+              };
+            }
 
-            this.param = JSON.parse(JSON.stringify(this.param))
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result)
           }
         })
-      },
-      loadData() {
-        if (this.data && this.data.id) {
-          this.param = JSON.parse(JSON.stringify(this.data))
-          this.param.required = !!this.param.required
-        }
       },
       querySearch(queryString, callback) {
         let params = this.params
@@ -245,7 +206,7 @@
       }
     }
   }
-  .el-autocomplete__suggestions {
+  .el-autocomplete-suggestion {
     max-height: 230px;
 
     li {

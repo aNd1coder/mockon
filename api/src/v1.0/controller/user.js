@@ -3,14 +3,45 @@
 import Base from './base.js'
 
 export default class extends Base {
+  __before() {
+    this.modelInstance.fieldReverse('password'); //隐藏 password 字段
+  }
+
   async getAction() {
     let data
-    if (this.id) {
-      let pk = await this.modelInstance.getPk()
-      data = await this.modelInstance.where({ [pk]: this.id }).find()
+    let params = this.get()
+    let action = params.action || ''
+    let where = {}
+
+    delete params.action
+
+    if (this.id || 'find' === action) {
+      if (this.id) {
+        let pk = await this.modelInstance.getPk()
+        where = { ...where, [pk]: this.id }
+      } else {
+        where = { ...where, ...params }
+      }
+
+      data = await this.modelInstance.where(where).find()
       return this.success(data)
     }
-    data = await this.modelInstance.select()
+
+    if ('invite' === action) {
+      let memberModelInstance = this.model('member')
+      let members = await memberModelInstance.where({ project_id: params.project_id }).select()
+
+      members = members.map(member => {
+        return member.user_id
+      })
+
+      where = { id: ['NOTIN', members] }
+    } else {
+      where = { ...where, ...params }
+    }
+
+    data = await this.modelInstance.where(where).select()
+
     return this.success(data)
   }
 
@@ -44,9 +75,9 @@ export default class extends Base {
         token = await this.createToken(data)
         data.token = token
 
-        await this.createLogger({ title: '登录系统', user_id: data.id })
+        await this.createLogger({ description: '登录系统', user_id: data.id })
 
-        return this.success(data)
+        return this.success(data, '登录成功')
       }
     } else if (action === 'signup') {
       let result = await this.modelInstance.where({ email: data.email }).select()
@@ -87,11 +118,14 @@ export default class extends Base {
         //]
       })
 
-      await this.createLogger({ title: '成功注册系统账户', user_id: data.id })
+      await this.createLogger({ description: '成功注册系统账户', user_id: data.id })
 
-      return this.success(data)
+      return this.success(data, '注册成功')
     } else if (action === 'signout') {
-      this.session()
+      await this.session();
+      return this.success({})
+    } else if (action === 'password_reset') {
+      return this.success({})
     }
   }
 
@@ -108,12 +142,24 @@ export default class extends Base {
     if (!this.id) {
       return this.fail('params error')
     }
+
     let pk = await this.modelInstance.getPk()
     let data = this.post()
+
     delete data[pk]
+    delete data.created_at
+    delete data.modified_at
+
     if (think.isEmpty(data)) {
       return this.fail('data is empty')
     }
+
+    if (data.password) {
+      data.password = think.md5(data.password)
+    } else {
+      delete data.password
+    }
+
     let rows = await this.modelInstance.where({ [pk]: this.id }).update(data)
     return this.success({ affectedRows: rows })
   }

@@ -1,8 +1,8 @@
-import { http } from 'vue'
+import Vue from 'vue'
 import * as types from './mutation-types'
 
 export async function fetchMembers({ commit }, payload) {
-  let result = await http.get('member', { params: payload })
+  let result = await Vue.http.get('member', { params: payload })
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -16,9 +16,9 @@ export async function fetchMember({ commit }, payload) {
   let result
 
   if (payload.id) {
-    result = await http.get('member/' + payload.id)
+    result = await Vue.http.get('member/' + payload.id)
   } else {
-    result = await http.get('member', { params: { action: 'find', ...payload } })
+    result = await Vue.http.get('member', { params: { action: 'find', ...payload } })
   }
 
   if (result.body.code === 0) {
@@ -29,7 +29,7 @@ export async function fetchMember({ commit }, payload) {
 }
 
 export async function inviteMember({ commit }, payload) {
-  let result = await http.post('member', payload)
+  let result = await Vue.http.post('member', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -40,7 +40,7 @@ export async function inviteMember({ commit }, payload) {
 }
 
 export async function createMember({ commit }, payload) {
-  let result = await http.post('member', payload)
+  let result = await Vue.http.post('member', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -51,7 +51,7 @@ export async function createMember({ commit }, payload) {
 }
 
 export async function deleteMember({ commit }, payload) {
-  let result = await http.delete('member/' + payload.id)
+  let result = await Vue.http.delete('member/' + payload.id)
 
   if (result.body.code === 0) {
     commit(types.DELETE_MEMBER, payload)
@@ -61,7 +61,7 @@ export async function deleteMember({ commit }, payload) {
 }
 
 export async function updateMember({ commit }, payload) {
-  let result = await http.put('member/' + payload.id, payload)
+  let result = await Vue.http.put('member/' + payload.id, payload)
 
   if (result.body.code === 0) {
     commit(types.UPDATE_MEMBER, payload)

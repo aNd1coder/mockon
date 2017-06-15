@@ -217,6 +217,13 @@
 .collapse-transition {
   transition: 0.3s height ease-in-out, 0.3s padding-top ease-in-out, 0.3s padding-bottom ease-in-out;
 }
+.list-enter-active, .list-leave-active {
+  transition: all 1s;
+}
+.list-enter, .list-leave-active {
+  opacity: 0;
+  transform: translateY(-30px);
+}
 .el-date-editor {
   position: relative;
   display: inline-block;
@@ -418,8 +425,8 @@
   --------------------------*/
 }
 .el-picker-panel {
-  color: #475669;
-  border: 1px solid #d3dce6;
+  color: rgb(72, 87, 106);
+  border: 1px solid rgb(209, 219, 229);
   box-shadow: 0 2px 6px #ccc;
   background: #fff;
   border-radius: 2px;
@@ -450,14 +457,14 @@
   background-color: transparent;
   line-height: 28px;
   font-size: 14px;
-  color: #475669;
+  color: rgb(72, 87, 106);
   padding-left: 12px;
   text-align: left;
   outline: none;
   cursor: pointer;
 }
 .el-picker-panel__shortcut:hover {
-  background-color: #e5e9f2;
+  background-color: rgb(228, 232, 241);
 }
 .el-picker-panel__shortcut.active {
   background-color: #e6f1fe;
@@ -480,7 +487,7 @@
 }
 .el-picker-panel__icon-btn {
   font-size: 12px;
-  color: #99a9bf;
+  color: rgb(151, 168, 190);
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -831,12 +838,12 @@
 }
 
 .time-select-item.disabled {
-  color: #d3dce6;
+  color: rgb(209, 219, 229);
   cursor: not-allowed;
 }
 
 .time-select-item:hover {
-  background-color: #e5e9f2;
+  background-color: rgb(228, 232, 241);
   cursor: pointer;
 }
 :root {
@@ -912,12 +919,18 @@
   --------------------------*/
   /* Steps
   --------------------------*/
-  /* Steps
+  /* Menu
   --------------------------*/
   /* Rate
   --------------------------*/
   /* DatePicker
   --------------------------*/
   /* Loading
+  --------------------------*/
+  /* Scrollbar
+  --------------------------*/
+  /* Carousel
+  --------------------------*/
+  /* Collapse
   --------------------------*/
 }

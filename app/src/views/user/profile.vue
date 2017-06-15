@@ -1,268 +1,153 @@
 <template>
-  <el-row>
-    <el-col :span="24">
-      <div class="page-header">
-        <img :src="user.avatar | imgformat" width="100" height="100" class="avatar">
-        <div class="meta">
-          <h1 class="name">{{ user.name }}<el-tag type="primary">{{ user.base_url }}</el-tag></h1>
-          <h2 class="description">{{ user.description || '暂无描述信息' }}</h2>
-          <ul class="links">
-            <li class="link">
-              <router-link :to="{ name: 'project-member', params: { code: user.code } }">
-                <i class="fa fa-user-o"></i>成员({{ user.members.length }})
-              </router-link>
-            </li>
-            <li class="link">
-              <i class="fa fa-heart-o"></i>收藏(0)
-            </li>
-            <li class="link"> /
-              <router-link :to="{ name: 'user', params: { username: user.owner.username } }">
-                {{ user.owner.username }}
-              </router-link>
-              创建于 {{ user.created_at | dateformat }}
-            </li>
-          </ul>
-        </div>
-      </div>
-      <el-tabs type="card" active-name="log" @tab-click="handleClick">
-        <el-tab-pane label="动态" name="log">
-          <ul v-if="logs.length" class="el-timeline">
-            <li v-for="log in logs" class="el-timeline__item">
-              <user-block :user="log.user" :size="50" :nameVisible="false"></user-block>
-              <div class="content">
-                <router-link :to="{ name: 'user', params: { username: log.user.username } }">
-                  {{ log.user.username }}
-                </router-link>
-                于 {{ log.created_at | dateformat }}
-                <div class="description">{{ log.description }}</div>
-              </div>
-            </li>
-            <li v-if="more" class="el-timeline__more">
-              <span v-if="done"><i class="fa fa-frown-o"></i>没有更多数据了</span>
-              <a v-else href="javascript:;" @click="handleTimeline">
-                <i class="fa fa-chevron-circle-down"></i>查看更多动态
-              </a>
-            </li>
-          </ul>
-          <ul v-if="user.members.length" class="project-members">
-            <li>
-              <router-link :to="{ name: 'project-member', params: { code: user.code } }">
-                <h4>项目成员<i class="fa fa-angle-right pull-right"></i></h4>
-              </router-link>
-            </li>
-            <li v-for="member in user.members" class="member">
-              <user-block :user="member" :size="50" :nameVisible="false"></user-block>
-            </li>
-          </ul>
-        </el-tab-pane>
-      </el-tabs>
+  <el-row class="user-profile">
+    <el-col :span="10" :offset="7">
+      <el-form :model="user" :rules="rules" ref="user" @submit.native.prevent="handleSubmit" class="el-form-block">
+        <el-form-item label="邮箱" prop="email">
+          <el-input type="text" v-model="user.email"></el-input>
+        </el-form-item>
+        <el-form-item label="账户" prop="username">
+          <el-input type="text" v-model="user.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input type="password" v-model="user.password" placeholder="不修改则留空"></el-input>
+        </el-form-item>
+        <el-form-item label="昵称" prop="nickname">
+          <el-input type="text" v-model="user.nickname"></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobile">
+          <el-input type="text" v-model="user.mobile"></el-input>
+        </el-form-item>
+        <el-form-item label="头像" prop="avatar">
+          <el-row>
+            <el-col class="image-preview" :span="11">
+              <el-user-block :user="user" :size="160" class="avatar" :nameVisible="false"></el-user-block>
+            </el-col>
+            <el-col :span="12" :offset="1">
+              <el-upload drag
+                 :action="UPLOAD_URL"
+                 :on-success="handleSuccess">
+                <i class="el-icon-upload"></i>
+                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+              </el-upload>
+            </el-col>
+          </el-row>
+        </el-form-item>
+        <el-form-item label="简介" prop="description">
+          <el-editor v-model="user.description" :toolbar="toolbar" :on-typing="handleTyping"></el-editor>
+        </el-form-item>
+        <el-form-item>
+          <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存</el-button>
+        </el-form-item>
+      </el-form>
     </el-col>
   </el-row>
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
+  import { UPLOAD_URL } from '../../config'
+  import { showNotify } from '../../utils'
+  import ElEditor from '../../components/editor.vue'
   import ElUserBlock from '../../components/user-block.vue'
 
-  export default{
+  export default {
     components: {
+      ElEditor,
       ElUserBlock
     },
     data() {
       return {
-        page: 1,
-        limit: 10,
-        more: true,
-        done: false
+        UPLOAD_URL,
+        toolbar: [
+          'bold',
+          'italic',
+          'strikethrough',
+          'unordered-list',
+          'ordered-list',
+          'link',
+          'preview',
+        ],
+        description: '',
+        disabled: false,
+        user: {
+          id: '',
+          username: '',
+          password: '',
+          nickname: '',
+          email: '',
+          mobile: '',
+          avatar: '',
+          description: ''
+        },
+        rules: {
+          username: [
+            { required: true, message: '请输入用户名', trigger: 'blur' }
+          ],
+          email: [
+            { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+            { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur,change' }
+          ]
+        }
       }
     },
-    computed: {
-      ...mapGetters(['user', 'project', 'logs'])
-    },
-    beforeRouteEnter({ params: { code } }, from, next) {
+    computed: mapGetters(['session']),
+    beforeRouteEnter(to, from, next) {
       next(async(vm) => {
-        await vm.fetchProject({ code })
-        await vm.fetchMoreLogs()
-
-        if (vm.logs.length < vm.limit) {
-          vm.more = false
-        }
+        vm.user = JSON.parse(JSON.stringify(vm.session))
       })
     },
     methods: {
-      ...mapActions(['fetchLogs']),
-      async handleClick(tab, event) {
+      ...mapActions(['updateUser']),
+      handleSuccess(result) {
+        this.user.avatar = result.data
       },
-      async fetchMoreLogs() {
-        return await this.fetchLogs({
-          user_id: this.user.id,
-          page: this.page,
-          limit: this.limit
+      handleTyping(value) {
+        this.description = value
+      },
+      handleSubmit() {
+        this.$refs.user.validate(async(valid) => {
+          if (valid) {
+            let result
+
+            this.disabled = true
+            this.user.description = this.description
+
+            result = await this.updateUser(this.user)
+
+            showNotify(this, result, ctx => {
+              location.href = '/signin'
+            })
+
+            this.disabled = false
+          } else {
+            return false
+          }
         })
-      },
-      async handleTimeline() {
-        this.page++
-
-        let result = await this.fetchMoreLogs()
-
-        if (result.data.length === 0) {
-          this.done = true
-        }
       }
     }
   }
 </script>
-<style lang="scss" scoped>
-  .page-header {
-    padding: 20px;
-    border-bottom: none;
-
-    .avatar {
-      float: left;
+<style lang="scss">
+  .user-profile {
+    .el-user-block, .el-user-avatar {
+      display: block;
+      width: 100%;
+      height: 180px;
     }
-    .meta {
-      position: relative;
-      line-height: 1.8em;
-      padding-left: 50px;
-      overflow: hidden;
 
-      &:before {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        width: 1px;
-        height: 60px;
-        content: '';
-        background-color: #eee;
-      }
-    }
-    .name {
-      color: #333;
-
-      .el-tag {
-        margin-left: 10px;
-        vertical-align: 4px;
-      }
-    }
-    .description {
-      margin: 10px 0;
-      padding-left: 10px;
-      border-left: 5px solid #e0e0e0;
-      font-size: 14px;
-      color: #666;
-    }
-    .owner {
-      font-size: 14px;
-      color: #999;
-      font-weight: 400;
-      vertical-align: middle;
-    }
-    .links {
-      overflow: hidden;
-
-      .link {
-        float: left;
-        margin-right: 10px;
-      }
-
-      &, a {
-        color: #999;
-        font-size: 12px;
-      }
-
-      a:hover {
-        color: #20a0ff;
-      }
+    .el-user-avatar:before {
+      font-size: 160px;
     }
   }
-  .el-tabs {
-    display: block;
-  }
-  .el-timeline {
-    border-left: 1px solid #e0e0e0;
-  }
-  .el-timeline__item {
-    position: relative;
-    padding: 0 0 30px 30px;
-    font-size: 12px;
-    color: #999;
-
-    .el-user-block {
-      float: left;
-      margin-right: 15px;
-    }
-
-    .content {
-      overflow: hidden;
-    }
-
-    .description {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
-    }
-
-    &:before {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      border: 3px solid #eee;
-      top: 19px;
-      left: -6px;
-      border-radius: 50%;
-      content: '';
-      background-color: #cfcfcf;
-    }
-
-    &:first-child:before {
-      border: 3px solid #d6edfe;
-      background-color: #20a0ff;
-    }
-
-    a {
-      color: #333;
-    }
-  }
-  .el-timeline__more {
-    padding-left: 30px;
-    color: #999;
-
-    &, a {
-      font-size: 14px;
-    }
-
-    a {
-      color: #20a0ff;
-    }
-  }
-  .project-members {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 262px;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid #e0e0e0;
-    border-radius: 3px;
-
-    li:first-child {
-      overflow: hidden;
-      margin-bottom: 10px;
-
-      h4 {
-        font-weight: 400;
-      }
-
-      .fa {
-        font-size: 16px;
-      }
-    }
-
-    .el-user-block {
-      margin: 5px;
-    }
-
-    .member {
-      float: left;
-    }
+  .image-preview {
+    height: 180px;
+    line-height: 180px;
+    border: 1px dashed #d9d9d9;
+    text-align: center;
+    background-color: #fff;
+    display: table-cell;
+    vertical-align: middle;
+    border-radius: 4px;
+    overflow: hidden;
   }
 </style>

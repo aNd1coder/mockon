@@ -93,7 +93,7 @@
     background: #fff;
     min-width: 150px;
     border-radius: 2px;
-    border: 1px solid #d3dce6;
+    border: 1px solid rgb(209, 219, 229);
     padding: 10px;
     z-index: 2000;
     font-size: 12px;
@@ -127,7 +127,7 @@
     bottom: -6px;
     left: 50%;
     margin-right: 3px;
-    border-top-color: #d3dce6;
+    border-top-color: rgb(209, 219, 229);
     border-bottom-width: 0;
 }
 
@@ -147,7 +147,7 @@
     left: 50%;
     margin-right: 3px;
     border-top-width: 0;
-    border-bottom-color: #d3dce6;
+    border-bottom-color: rgb(209, 219, 229);
 }
 
 .el-popover[x-placement^="bottom"] .popper__arrow::after{
@@ -165,7 +165,7 @@
     top: 50%;
     left: -6px;
     margin-bottom: 3px;
-    border-right-color: #d3dce6;
+    border-right-color: rgb(209, 219, 229);
     border-left-width: 0;
 }
 
@@ -185,7 +185,7 @@
     right: -6px;
     margin-bottom: 3px;
     border-right-width: 0;
-    border-left-color: #d3dce6;
+    border-left-color: rgb(209, 219, 229);
 }
 
 .el-popover[x-placement^="left"] .popper__arrow::after{
@@ -197,7 +197,7 @@
 }
 
 .el-popover__title{
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     font-size: 13px;
     line-height: 1;
     margin-bottom: 9px;
@@ -275,12 +275,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

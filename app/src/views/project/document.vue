@@ -11,9 +11,9 @@
     </el-table-column>
     <el-table-column sortable :formatter="formatter" prop="created_at" width="170" label="创建时间"></el-table-column>
     <el-table-column sortable :formatter="formatter" prop="modified_at" width="170" label="最后更新"></el-table-column>
-    <el-table-column v-if="project.owner.id === user.id" width="165" inline-template label="操作">
+    <el-table-column width="165" inline-template label="操作">
       <div>
-        <el-button :plain="true" type="danger" size="small" @click="handleRemove(row)">
+        <el-button :plain="true" type="danger" size="small" @click="handleDelete(row)">
           <i class="fa fa-trash-o"></i>删除
         </el-button>
         <router-link :to="{ name: 'project-editor', params: { code: project.code, api_id: row.api_id } }">
@@ -28,7 +28,7 @@
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
-  import { dateFormatter } from '../../utils'
+  import { dateFormatter, showNotify, showConfirm } from '../../utils'
   import ElUserBlock from '../../components/user-block.vue'
   import ElNodata from '../../components/nodata.vue'
 
@@ -46,7 +46,7 @@
         ]
       }
     },
-    computed: mapGetters(['user', 'project', 'documents']),
+    computed: mapGetters(['session', 'project', 'documents']),
     beforeRouteEnter({ params: { code } }, from, next) {
       next(async(vm) => {
         await vm.fetchProject({ code })
@@ -55,35 +55,15 @@
     },
     methods: {
       ...mapActions(['fetchProject', 'fetchDocuments', 'deleteDocument']),
-      handleRemove(row) {
-        this.$confirm(
-          '确定删除该文档?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteDocument(row)
+      handleDelete(row) {
+        showConfirm(this, '确定删除该文档?', async (ctx) => {
+          let result = await ctx.deleteDocument(row)
 
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {})
+          showNotify(ctx, result)
+        })
       },
       handleDeprecated(row) {
-        this.$confirm(
-          '确定废弃该文档?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteDocument(row)
 
-          this.$notify.success({
-            title: '提示',
-            message: '废弃成功!',
-            duration: 3000
-          })
-        }).catch(() => {})
       },
       filterStatus(value, row) {
         return row.status === value

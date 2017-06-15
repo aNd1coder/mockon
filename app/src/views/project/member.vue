@@ -1,44 +1,19 @@
 <template>
-  <div v-loading.body="loading" element-loading-text="加载中">
+  <section class="project-member" v-loading.body="loading" element-loading-text="加载中">
     <div class="page-header">
       <h1 class="pull-left">成员管理</h1>
-      <el-button class="pull-right" :plain="true" type="primary" @click="handleInvite">
-        <i class="fa fa-user-plus"></i>邀请成员
-      </el-button>
     </div>
-    <el-table v-if="members && members.length" :data="members" stripe>
-      <el-table-column inline-template prop="user.avatar" label="用户">
-        <el-user-block :user="row.user"></el-user-block>
-      </el-table-column>
-      <el-table-column prop="user.username" label="账户"></el-table-column>
-      <el-table-column prop="user.email" width="200" label="邮箱"></el-table-column>
-      <el-table-column prop="user.mobile" width="125" label="手机"></el-table-column>
-      <el-table-column prop="user.status" label="状态" :filters="statusMap" :filter-method="filterStatus" inline-template>
-        <el-tag :type="row.user.status === 0 ? 'danger' : 'primary'" close-transition>
-          {{ statusMap[row.user.status].text }}
-        </el-tag>
-      </el-table-column>
-      <el-table-column sortable :FORMATTER="formatter" prop="created_at" width="170" label="加入时间"></el-table-column>
-      <el-table-column v-if="project.owner.id === user.id" inline-template label="操作">
-        <el-button :plain="true" type="danger" size="small" @click="handleremove(row)">移出</el-button>
-      </el-table-column>
-    </el-table>
-    <el-nodata v-else></el-nodata>
-    <el-dialog title="邀请成员加入" v-model="dialogVisible">
+    <span v-for="member in members" :key="member.id" class="member">
+      <el-user-block :size="80" :user="member.user"></el-user-block>
+      <el-tag v-if="member.user.id === project.owner.id" type="primary">Owner</el-tag>
+      <el-button v-else :plain="true" type="danger" size="small" @click="handleDelete(member)">移出</el-button>
+    </span>
+    <span class="new-member" @click="handleInvite" title="添加成员"><i class="fa fa-plus-circle"></i></span>
+    <el-dialog title="邀请成员" v-model="dialogVisible">
       <el-form @submit.native.prevent="handleSubmit">
         <el-form-item>
-          <el-select
-            v-model="ids"
-            multiple
-            filterable
-            remote
-            placeholder="输入关键词"
-            :remote-method="querySearchAsync">
-            <el-option
-              v-for="user in membersData"
-              :key="user.id"
-              :label="user.email"
-              :value="user.id">
+          <el-select v-model="ids" multiple filterable remote placeholder="输入关键词" :remote-method="querySearchAsync">
+            <el-option v-for="user in membersData" :key="user.id" :label="user.email" :value="user.id">
               <el-user-block :user="user"></el-user-block>
             </el-option>
           </el-select>
@@ -48,33 +23,25 @@
         </el-form-item>
       </el-form>
     </el-dialog>
-  </div>
+  </section>
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
   import ElUserBlock from '../../components/user-block.vue'
-  import ElNodata from '../../components/nodata.vue'
-  import { dateFormatter } from '../../utils'
-
+  import { dateFormatter, showNotify, showConfirm } from '../../utils'
   export default {
     components: {
-      ElUserBlock,
-      ElNodata
+      ElUserBlock
     },
     data() {
       return {
         loading: true,
         dialogVisible: false,
-        ids: '',
-        membersData: [],
-        ids: '',
-        statusMap: [
-          { text: '未确认', value: '0' },
-          { text: '已加入', value: '1' },
-        ]
+        ids: [],
+        membersData: []
       }
     },
-    computed: mapGetters(['user', 'users', 'project', 'members']),
+    computed: mapGetters(['session', 'users', 'project', 'members']),
     beforeRouteEnter({ params: { code } }, from, next) {
       next(async(vm) => {
         await vm.fetchProject({ code })
@@ -91,38 +58,24 @@
         'inviteMember',
       ]),
       async handleInvite() {
+        await this.fetchUsers({ action: 'invite', project_id: this.project.id })
         this.dialogVisible = true
-        await this.fetchUsers({})
       },
-      handleRemove(row) {
-        this.$confirm(
-          '确定移出该成员?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteMember(row)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {
+      handleDelete(member) {
+        showConfirm(this, '确定移出该成员?', async (ctx) => {
+          let result = await ctx.deleteMember(member)
+          showNotify(ctx, result)
         })
       },
       handleSubmit() {
         if (this.ids.length > 0) {
-          this.ids.forEach(async(user_id) => {
-            await this.inviteMember({ project_id: this.project.id, user_id })
+          this.ids.forEach(async (user_id) => {
+            let result = await this.inviteMember({ project_id: this.project.id, user_id })
+            showNotify(this, result)
           })
 
-          this.ids = ''
-
-          this.$notify.success({
-            title: '提示',
-            message: '邀请成功!',
-            duration: 3000
-          })
+          this.ids = []
+          this.dialogVisible = false
         }
       },
       querySearchAsync(query) {
@@ -137,12 +90,64 @@
           this.membersData = []
         }
       },
-      filterStatus(value, row) {
-        return row.user.status === value
-      },
       formatter(row, column) {
         return dateFormatter(row[column.property])
       }
-    },
+    }
   }
 </script>
+<style lang="scss">
+  .project-member {
+    .member,.new-member {
+      display: inline-block;
+      margin: 20px 0 0 20px;
+      text-align: center;
+      vertical-align: top;
+    }
+    .member {
+      .el-button, .el-tag {
+        display: block;
+        width: 100%;
+        margin: 5px auto 0;
+        font-size: 14px;
+      }
+      .el-tag {
+        height: 28px;
+        line-height: 28px;
+      }
+    }
+    .el-user-avatar {
+      width: 80px;
+      height: 80px;
+
+      &:before {
+        font-size: 80px;
+      }
+    }
+    .el-user-name {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .new-member {
+      position: relative;
+      width: 80px;
+      height: 140px;
+      line-height:140px;
+      font-size: 30px;
+      border: 1px dashed #d9d9d9;
+      border-radius: 5px;
+      color: #d9d9d9;
+      cursor: pointer;
+
+      &:hover {
+        color: #20a0ff;
+        border-color: #20a0ff;
+      }
+    }
+  }
+
+  .el-select-dropdown__item {
+    position: relative;
+    height: auto;
+  }
+</style>

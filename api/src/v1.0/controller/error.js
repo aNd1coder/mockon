@@ -7,12 +7,7 @@ export default class extends Base {
     let data
     let params = this.get()
     let action = params.action
-    let user = this.userInfo()
     let where = {}
-
-    if (user) {
-      where = { user_id: user.id }
-    }
 
     delete params.action
 
@@ -28,7 +23,11 @@ export default class extends Base {
       return this.success(data)
     }
 
-    where = { ...where, ...params }
+    where = '( project_id=' + params.project_id + ' )';
+
+    if (params.api_id) {
+      where += 'AND ( api_id = 0 OR api_id =' + params.api_id + ' )'
+    }
 
     data = await this.modelInstance.where(where).select()
 
@@ -42,6 +41,10 @@ export default class extends Base {
 
     delete data[pk]
 
+    if (!await this.memberOf(data.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     if (think.isEmpty(data)) {
       return this.fail('data is empty')
     }
@@ -49,6 +52,16 @@ export default class extends Base {
     data.user_id = user.id
 
     data.id = await this.modelInstance.add(data)
+
+    if (data.id) {
+      let projectModelInstance = this.model('project')
+      let project = await projectModelInstance.where({ id: data.project_id }).find()
+
+      await this.createLogger({
+        description: `添加了项目【${project.name}】状态码【${data.description}】`,
+        project_id: data.project_id
+      })
+    }
 
     return this.success(data)
   }
@@ -58,7 +71,24 @@ export default class extends Base {
       return this.fail('params error')
     }
     let pk = await this.modelInstance.getPk()
+    let error = await this.modelInstance.where({ [pk]: this.id }).find()
+
+    if (!await this.memberOf(error.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     let rows = await this.modelInstance.where({ [pk]: this.id }).delete()
+
+    if (rows > 0) {
+      let projectModelInstance = this.model('project')
+      let project = await projectModelInstance.where({ id: error.project_id }).find()
+
+      await this.createLogger({
+        description: `删除了项目【${project.name}】状态码【${error.description}】`,
+        project_id: error.project_id
+      })
+    }
+
     return this.success({ affectedRows: rows })
   }
 
@@ -69,6 +99,10 @@ export default class extends Base {
     let pk = await this.modelInstance.getPk()
     let data = this.post()
 
+    if (!await this.memberOf(data.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     delete data[pk]
     delete data.user
     delete data.table
@@ -78,7 +112,19 @@ export default class extends Base {
     if (think.isEmpty(data)) {
       return this.fail('data is empty')
     }
-    await this.modelInstance.where({ [pk]: this.id }).update(data)
+
+    let rows = await this.modelInstance.where({ [pk]: this.id }).update(data)
+
+    if (rows > 0) {
+      let projectModelInstance = this.model('project')
+      let project = await projectModelInstance.where({ id: data.project_id }).find()
+
+      await this.createLogger({
+        description: `更新了项目【${project.name}】状态码【${data.description}】信息`,
+        project_id: data.project_id
+      })
+    }
+
     return this.success(data)
   }
 }

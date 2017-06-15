@@ -2,11 +2,8 @@
   <section>
     <div class="page-header">
       <h1 class="pull-left">接口管理</h1>
-      <el-button class="pull-right" :plain="true" type="primary" @click="handleCreate">
-        <i class="fa fa-plus-circle"></i>新增模块
-      </el-button>
     </div>
-    <el-row v-if="modules.length > 0">
+    <el-row>
       <el-col :span="24">
         <ul class="modules">
           <li v-for="module in modules" class="module">
@@ -28,24 +25,28 @@
             </ul>
             <span v-else class="nodata">无接口信息</span>
           </li>
+          <li class="module module-new">
+            <h3 class="module-name" @click="handleCreate">
+              <i class="fa fa-plus-circle"></i>新增分组
+            </h3>
+          </li>
         </ul>
       </el-col>
     </el-row>
-    <el-nodata v-else></el-nodata>
     <el-dialog :title="title" v-model="dialogVisible">
       <el-form :model="module" :rules="rules" ref="module" @submit.native.prevent="handleSubmit">
-        <el-form-item label="模块名称" prop="name">
+        <el-form-item label="分组名称" prop="name">
           <el-input type="text" v-model="module.name"></el-input>
         </el-form-item>
-        <el-form-item label="模块代码" prop="code">
-          <el-input type="text" v-model="module.code" placeholder="小写字母及数字组合，建议使用简明的英文单词，用来标识模块"></el-input>
+        <el-form-item label="分组代码" prop="code">
+          <el-input type="text" v-model="module.code" placeholder="小写字母及数字组合，建议使用简明的英文单词，用来标识分组"></el-input>
         </el-form-item>
-        <el-form-item label="模块描述" prop="description">
+        <el-form-item label="分组描述" prop="description">
           <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 2 }" v-model="module.description"></el-input>
         </el-form-item>
         <el-form-item prop="status">
           <el-select v-model="module.status" placeholder="状态">
-            <el-option v-for="status in statusMap" :label="status.text" :value="status.value"></el-option>
+            <el-option v-for="status in statusMap" :key="status.value" :label="status.text" :value="status.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -57,6 +58,7 @@
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
+  import { showNotify, showConfirm } from '../../utils'
   import ElHttpMethod from '../../components/http-method.vue'
   import ElNodata from '../../components/nodata.vue'
 
@@ -83,15 +85,15 @@
         },
         rules: {
           name: [
-            { required: true, message: '请输入模块名称', trigger: 'blur' }
+            { required: true, message: '请输入分组名称', trigger: 'blur' }
           ],
           code: [
-            { required: true, message: '请输入模块代码', trigger: 'blur' }
+            { required: true, message: '请输入分组代码', trigger: 'blur' }
           ]
         }
       }
     },
-    computed: mapGetters(['user', 'project', 'modules']),
+    computed: mapGetters(['session', 'project', 'modules']),
     beforeRouteEnter(to, from, next) {
       next(async(vm) => {
         await vm.fetchModules({ project_id: vm.project.id })
@@ -106,7 +108,7 @@
         'deleteApi'
       ]),
       handleCreate() {
-        this.title = '新增模块'
+        this.title = '新增分组'
         this.module = {
           id: '',
           name: '',
@@ -117,40 +119,20 @@
         this.dialogVisible = true
       },
       handleUpdate(module) {
-        this.title = '修改模块'
+        this.title = '修改分组'
         this.dialogVisible = true
         this.module = JSON.parse(JSON.stringify(module))
       },
       handleDelete(module) {
-        this.$confirm(
-          '删除模块会连同关联的数据一并删除，确定要删除?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteModules(module)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {
+        showConfirm(this, '删除分组会连同关联的数据一并删除，确定要删除?', async (ctx) => {
+          let result = await ctx.deleteModule(module)
+          showNotify(ctx, result)
         })
       },
       handleApiDelete(api) {
-        this.$confirm(
-          '删除接口会连同关联的数据一并删除，确定要删除?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteApi(api)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {
+        showConfirm(this, '删除接口会连同关联的数据一并删除，确定要删除?', async (ctx) => {
+          let result = await ctx.deleteApi(api)
+          showNotify(ctx, result)
         })
       },
       handleSubmit() {
@@ -170,21 +152,9 @@
 
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-
-              this.dialogVisible = false
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result, ctx => {
+              ctx.dialogVisible = false
+            })
           } else {
             return false
           }
@@ -199,7 +169,7 @@
     padding: 20px;
   }
   .module {
-    padding-bottom: 30px;
+    padding-bottom: 20px;
 
     &:hover {
       h3 {
@@ -213,7 +183,7 @@
     h3 {
       margin-bottom: 10px;
       font-weight: 400;
-      font-size: 16px;
+      font-size: 14px;
       overflow: hidden;
 
       a {
@@ -238,16 +208,25 @@
       color: #999;
     }
   }
+  .module-new .module-name {
+    display: inline-block;
+    border: 1px dashed #d9d9d9;
+    padding: 2px 5px;
+    color: #d9d9d9;
+    border-radius: 5px;
+    cursor: pointer;
+
+    &:hover {
+      color: #20a0ff;
+      border-color: #20a0ff;
+    }
+  }
   .apis {
     font-size: 14px;
   }
   .api {
-    padding-bottom: 10px;
+    margin-bottom: 5px;
     color: #666;
-
-    .el-tag {
-      margin-right: 5px;
-    }
 
     &:hover {
       a {

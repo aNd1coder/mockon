@@ -6,17 +6,15 @@
         <input type="text" placeholder="输入关键字搜索...">
       </div>
       <ul v-if="modules.length > 0" class="summary">
-        <li v-for="module in modules">
-          <span>{{ module.name }}</span>
+        <li v-for="module in modules" :key="module.id">
+          <span class="module-name">{{ module.name }}</span>
           <ul v-if="module.api.length > 0">
-            <li v-for="ma in module.api" :class="{ 'active': ma.id === api.id }">
-              <router-link :to="{ name: 'document-view', params: { id: ma.id } }">{{ ma.name }}</router-link>
+            <li v-for="ma in module.api" :key="ma.id" :class="{ 'active': ma.id === api.id }">
+              <router-link :to="{ name: 'document-view', params: { id: ma.id } }">
+                <el-http-method :method="ma.method"></el-http-method> {{ ma.name }}
+              </router-link>
             </li>
           </ul>
-        </li>
-        <li class="divider"></li>
-        <li>
-          <router-link :to="{ name: 'project' }">状态码</router-link>
         </li>
       </ul>
     </div>
@@ -25,53 +23,74 @@
         接口调试
         <i class="el-icon-close" @click="withDebugger = false"></i>
       </h1>
-      <el-form :model="form" :rules="rules" ref="form" @submit.native.prevent="handleSubmit">
-        <el-form-item prop="method">
-          <el-select v-model="form.method" placeholder="请求方法">
-            <el-option v-for="method in HTTP_METHOD" :label="method" :value="method"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="enctype">
-          <el-select v-model="form.enctype" placeholder="编码类型">
-            <el-option v-for="enctype in FORM_ENCTYPE" :label="enctype" :value="enctype"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item prop="url">
-          <el-input type="text" v-model="form.url" placeholder="接口地址"></el-input>
-        </el-form-item>
-        <el-form-item v-for="(param, index) in form.params">
-          <el-input type="text" v-model="param.default_value" placeholder="参数值">
-            <template slot="prepend">
-              <el-select v-model="param.location" placeholder="参数位置">
-                <el-option v-for="(label, location) in PARAM_LOCATION" :label="label" :value="location"></el-option>
-              </el-select><el-autocomplete
-                v-if="param.location === 'header'"
-                v-model="param.name"
-                :fetch-suggestions="querySearch"
-                class="inline-input"
-                placeholder="参数名"
-            ></el-autocomplete><el-input v-else type="text" v-model="param.name" placeholder="参数名"></el-input>
-            </template><template slot="append">
-              <el-button v-if="index === form.params.length - 1" icon="plus" @click="handleNew"></el-button>
-              <el-button v-else icon="close" :disabled="!!param.required" @click="handleRemove(param)"></el-button>
-            </template>
-          </el-input>
-        </el-form-item>
-        <el-form-item>
-          <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">发送请求</el-button>
-        </el-form-item>
-      </el-form>
-      <div class="response">
-        <div class="status"></div>
-        <div ref="body" class="body"></div>
-      </div>
+      <el-row>
+        <el-col :span="8">
+          <el-input style="display: none;" v-model="keyword" placeholder="请输入关键词..." icon="search"></el-input>
+          <h3>调试记录</h3>
+          <ul v-if="debugs.length > 0" class="debugs">
+            <li v-for="debug in debugs" class="debug" @click="handleDebugClick(debug)">
+              <el-http-method :method="parseDebugData(debug).method"></el-http-method>
+              {{ parseDebugData(debug).url }}
+              <i class="fa fa-close" title="删除" @click="handleDebugDelete(debug)"></i>
+            </li>
+          </ul>
+          <el-nodata v-else></el-nodata>
+        </el-col>
+        <el-col :span="16">
+          <el-form :model="form" :rules="rules" ref="form" @submit.native.prevent="handleSubmit">
+            <el-form-item label="接口地址" prop="url">
+              <el-input type="text" v-model="form.url" placeholder="接口地址"></el-input>
+            </el-form-item>
+            <el-form-item label="请求方法" prop="method">
+              <el-select v-model="form.method" placeholder="请选择请求方法">
+                <el-option v-for="method in HTTP_METHOD" :key="method" :label="method" :value="method"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="编码类型" prop="enctype">
+              <el-select v-model="form.enctype" placeholder="请选择编码类型">
+                <el-option v-for="enctype in FORM_ENCTYPE" :key="enctype" :label="enctype" :value="enctype"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="请求方式" prop="type">
+              <el-select v-model="form.type" placeholder="请选择请求方式">
+                <el-option label="正常接口" value=""></el-option>
+                <el-option label="模拟接口" value="mock"></el-option>
+                <el-option label="代理接口" value="proxy"></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="请求参数">
+              <el-form-item v-for="(param, index) in form.params" :key="param.id">
+                <el-input type="text" v-model="param.default_value" placeholder="参数值">
+                  <template slot="prepend">
+                    <el-select v-model="param.location" placeholder="参数位置">
+                      <el-option v-for="(label, location) in PARAM_LOCATION" :key="location" :label="label" :value="location"></el-option>
+                    </el-select>
+                    <el-autocomplete v-if="param.location === 'header'" v-model="param.name" :fetch-suggestions="querySearch" class="inline-input" placeholder="参数名"></el-autocomplete>
+                    <el-input v-else type="text" v-model="param.name" placeholder="参数名"></el-input>
+                  </template>
+                  <template slot="append">
+                    <el-button v-if="index === form.params.length - 1" icon="plus" @click="handleNew"></el-button>
+                    <el-button v-else icon="close" :disabled="!!param.required" @click="handleDelete(param)"></el-button>
+                  </template>
+                </el-input>
+              </el-form-item>
+            </el-form-item>
+            <el-form-item>
+              <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">发送请求</el-button>
+            </el-form-item>
+          </el-form>
+          <div class="response">
+            <el-tag type="gray"><i class="el-icon-warning"></i> 如为 JSONP 请求则只返回 JSON 部分数据</el-tag>
+            <div ref="body" class="body"></div>
+          </div>
+        </el-col>
+      </el-row>
     </div>
-    <div v-if="api && api.id" class="document-body">
+    <div v-if="api && api.id" class="document-body" v-loading.body="!api" element-loading-text="加载中">
       <div class="body-inner">
         <div class="document-header">
           <i class="fa fa-align-justify" @click="withSummary = !withSummary"></i>
-          {{ api.project.name }}<i class="fa fa-angle-right"></i>{{ api.module.name }}
-          <el-button type="info" size="mini" @click="handleDebugger"><i class="fa fa-bug"></i>调试接口</el-button>
+          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: api.id } }" class="fa fa-pencil-square-o"> 编辑接口</router-link>
         </div>
         <div class="page-wrapper">
           <div class="page-inner">
@@ -80,23 +99,39 @@
                 <el-tag type="primary">{{ statusMap[api.status] }}</el-tag>
               </h1>
               <p>{{ api.description }}</p>
+
               <h3>URL</h3>
-              <el-http-method :method="api.method"></el-http-method>
-              <code>{{ api.project.base_url + api.path }}</code>
+              <el-tag type="gray"><el-http-method :method="api.method"></el-http-method>{{ api_url }}</el-tag>
 
               <template v-for="response in api.response">
-                <h3 :class="response.type">{{ response.description }}</h3>
+                <h3 :class="'response-block response-block-'+response.type">
+                  {{ response.description }}
+                  <el-button class="pull-right" size="mini" @click="handleDebugger(response)"><i class="fa fa-bug"></i>调试</el-button>
+                </h3>
                 <el-table v-if="response.param.length" :data="response.param" :row-class-name="tableRowClassName">
                   <el-table-column prop="name" label="名称"></el-table-column>
                   <el-table-column prop="type" label="类型" inline-template>
                     <span>{{ row.type + (row.length ? '(' + row.length + ')' : '') }}</span>
                   </el-table-column>
-                  <el-table-column prop="location" label="位置"></el-table-column>
+                  <el-table-column prop="location" label="位置" inline-template>
+                    <span>{{ PARAM_LOCATION[row.location] }}</span>
+                  </el-table-column>
                   <el-table-column prop="default_value" label="默认值"></el-table-column>
-                  <el-table-column prop="description" width="350" label="描述"></el-table-column>
+                  <el-table-column prop="required" label="必需" inline-template>
+                    <span>{{ (row.required ? '是' : '否') }}</span>
+                  </el-table-column>
+                  <el-table-column prop="description" label="描述"></el-table-column>
                 </el-table>
-                <pre><code class="lang-json" v-html="formattedBody(response.body)"></code></pre>
+                <pre><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code></pre>
               </template>
+
+              <h3>状态码</h3>
+              <el-table v-if="errors.length" :data="errors">
+                <el-table-column prop="code" label="状态码" inline-template>
+                  <span>{{ row.name ? row.name + '('+ row.code +')' : row.code }}</span>
+                </el-table-column>
+                <el-table-column prop="description" label="状态描述"></el-table-column>
+              </el-table>
             </section>
           </div>
         </div>
@@ -113,13 +148,20 @@
     HTTP_HEADERS,
     HTTP_METHOD,
     FORM_ENCTYPE,
-    PARAM_LOCATION
+    PARAM_LOCATION,
+    MOCK_URL,
+    PROXY_URL
 } from '../../config'
   import ElHttpMethod from '../../components/http-method.vue'
+  import ElNodata from '../../components/nodata.vue'
   import { jsonFormat } from '../../utils'
+  import Mock from 'mockjs'
 
   export default{
-    components: { ElHttpMethod },
+    components: {
+      ElHttpMethod,
+      ElNodata
+    },
     data() {
       return {
         withSummary: true,
@@ -134,12 +176,17 @@
         HTTP_METHOD,
         FORM_ENCTYPE,
         PARAM_LOCATION,
+        MOCK_URL,
+        PROXY_URL,
+        keyword: '',
         disabled: false,
+        response: {},
         form: {
           method: '',
           enctype: '',
           url: '',
-          params: {}
+          type: '',
+          params: []
         },
         rules: {
           url: [
@@ -150,12 +197,65 @@
     },
     computed: {
       ...mapGetters([
-        'user',
+        'session',
         'project',
         'api',
         'modules',
-        'fields'
+        'fields',
+        'errors',
+        'debugs'
       ]),
+      api_url() {
+        return this.api.project.base_url + this.api.path
+      },
+      params () {
+        let params = {}
+
+        this.form.params.forEach(param => {
+          if (!params.hasOwnProperty(param.location)) {
+            params[param.location] = {}
+          }
+
+          params[param.location][param.name] = param.default_value
+        })
+
+        return params
+      },
+      paths () {
+        let paths = ''
+
+        if (this.params.path) {
+          for (let p in this.params.path) {
+            paths += p + '/' + this.params.path[p]
+          }
+        }
+
+        if (paths) {
+          paths = (this.api.path.lastIndexOf('/') !== this.api.path.length - 1 ? '/' : '' ) + paths
+        }
+
+        return paths
+      },
+      querys () {
+        let querys = ''
+
+
+        if (this.params.query) {
+          for (let q in this.params.query) {
+            querys += '&' + q + '=' + this.params.query[q]
+          }
+        }
+
+        if (querys) {
+          querys = querys.substring(1)
+          querys = (this.api.path.indexOf('?') === -1 ? '?' : '&') + querys
+        }
+
+        return querys
+      },
+      url () {
+        return this.api_url + this.paths
+      },
       wrapClass() {
         return [
           'document',
@@ -170,35 +270,30 @@
       next(async(vm) => {
         vm.withDebugger = false
         await vm.loadData()
-        vm.form.method = vm.api.method
-        vm.form.enctype = vm.api.project.enctype
-        vm.form.url = vm.api.project.base_url + vm.api.path
-        if (vm.api.response.length > 0) {
-          let params = vm.api.response[0].param
-
-          if (params.length > 0) {
-            vm.form.params = JSON.parse(JSON.stringify(params))
-          } else {
-            vm.form.params = []
-            vm.newParam()
-          }
-        }
       })
     },
     watch: {
-      '$route': 'loadData'
+      $route (to, from) {
+        if (to.name === from.name) {
+          this.loadData()
+        }
+      }
     },
     methods: {
       ...mapActions([
         'fetchModules',
         'fetchApi',
-        'fetchFields'
+        'fetchFields',
+        'fetchErrors',
+        'fetchDebugs',
+        'createDebug',
+        'deleteDebug'
       ]),
       handleNew() {
         this.uuid++
         this.newParam()
       },
-      handleRemove(param) {
+      handleDelete(param) {
         this.form.params.forEach((item, index) => {
           if (item.id === param.id) {
             this.form.params.splice(index, 1)
@@ -209,6 +304,16 @@
         this.$refs.form.validate(async(valid) => {
           if (valid) {
             let params = {}
+            let url = this.form.url
+            let method = this.form.method.toLowerCase()
+            let options = {}
+            let body
+            let data
+
+            if (this.response.jsonp_callback) {
+              method = 'jsonp'
+              options = { 'jsonp': this.response.jsonp_callback }
+            }
 
             this.form.params.forEach(param => {
               params[param.name] = param.default_value
@@ -216,21 +321,24 @@
 
             this.disabled = true
 
-            //enctype: this.form.enctype,
-            let result = await this.$http[this.form.method](this.form.url, params)
-            console.log(result)
-            let value = JSON.stringify(result.body.data, null, 2)
-            let editor = ace.edit(this.$refs.body)
+            data = params
 
-            editor.$blockScrolling = Infinity
-            editor.getSession().setMode('ace/mode/json')
-            editor.getSession().setTabSize(2)
-            editor.setTheme('ace/theme/tomorrow')
-            editor.setOptions({ maxLines: Infinity })
-            editor.setShowPrintMargin(false)
-            editor.setReadOnly(true)
-            editor.setValue(value)
-            editor.clearSelection()
+            if (this.form.type === 'mock') {
+              url = MOCK_URL + this.response.id
+            } else if (this.form.type === 'proxy') {
+              data = { ...this.form }
+              data.params = this.params
+              method = 'post'
+              url = PROXY_URL
+            }
+
+            await this.$http[method](url, data, options).then(async(response) => {
+              body = JSON.stringify(response.body, null, 2)
+              await this.createDebug({ data: JSON.stringify(this.form) })
+              this.renderEditor(body)
+            }).catch(error => {
+              console.log(error)
+            })
 
             this.disabled = false
           } else {
@@ -238,8 +346,31 @@
           }
         })
       },
-      handleDebugger() {
+      handleDebugger(response) {
         this.withDebugger = !this.withDebugger
+
+        if (this.withDebugger) {
+          this.response = response
+
+          if (response.param.length > 0) {
+            this.form.params = JSON.parse(JSON.stringify(response.param))
+          } else {
+            this.form.params = []
+            this.newParam()
+          }
+
+          this.form.url = this.api_url
+          this.form.method = this.api.method
+          this.form.enctype = this.api.project.enctype
+
+          this.fetchDebugs();
+        }
+      },
+      handleDebugClick(debug) {
+        this.form = JSON.parse(debug.data)
+      },
+      handleDebugDelete(debug) {
+        this.deleteDebug(debug)
       },
       querySearch(queryString, cb) {
         let headers = []
@@ -259,9 +390,25 @@
           id: this.uuid,
           description: '',
           default_value: '',
-          location: 'formData',
+          location: 'query',
           name: ''
         })
+      },
+      parseDebugData(debug) {
+        return JSON.parse(debug.data)
+      },
+      renderEditor(body) {
+        let editor = ace.edit(this.$refs.body)
+
+        editor.$blockScrolling = Infinity
+        editor.getSession().setMode('ace/mode/json')
+        editor.getSession().setTabSize(2)
+        editor.setTheme('ace/theme/tomorrow')
+        editor.setOptions({ maxLines: Infinity })
+        editor.setShowPrintMargin(false)
+        editor.setReadOnly(true)
+        editor.setValue(body)
+        editor.clearSelection()
       },
       async loadData() {
         let id = this.$route.params.id
@@ -269,10 +416,18 @@
         await this.fetchApi({ id })
         await this.fetchModules({ project_id: this.api.project_id })
         await this.fetchFields({ project_id: this.api.project_id })
+        await this.fetchErrors({ project_id: this.api.project_id, api_id: this.api.id })
       },
-      formattedBody (body) {
+      formattedBody (response) {
+        let body = response.body
+
         body = JSON.parse(body)
-        return jsonFormat(body, this.fields)
+
+        if (response.is_mockjs) {
+          body = Mock.mock(body)
+        }
+
+        return jsonFormat(body, this.fields, response.jsonp_callback)
       },
       tableRowClassName(row, index) {
         if (row.required) {
@@ -291,8 +446,69 @@
       vertical-align: 7px;
     }
   }
-  .el-tag {
-    margin-right: 5px;
+  .el-tag--gray {
+    padding: 0 10px;
+    background-color: #f7f7f7;
+    border-color: #f7f7f7;
+    font-size: 14px;
+  }
+  .document-debugger {
+    .el-row {
+      padding: 20px;
+    }
+
+    .el-col:nth-child(1) {
+      padding-top: 5px;
+
+      h3 {
+        font-weight: normal;
+        font-size: 14px;
+        color: rgb(72, 87, 106);
+      }
+    }
+
+    .el-col:nth-child(2) {
+      padding-left: 20px;
+    }
+
+    .el-form {
+      padding: 0;
+    }
+  }
+  .debugs {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  .debug {
+    position: relative;
+    line-height: 24px;
+    padding: 0 10px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    background-color: #fafafa;
+    border-radius: 5px;
+
+    &:hover {
+      background-color: #f3f3f3;
+      cursor: pointer;
+
+      .fa-close {
+        display: block;
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        transform: translateY(-50%);
+        color: rgb(131, 145, 165);
+      }
+    }
+
+    .fa-close {
+      display: none;
+
+      &:hover {
+        color: #000;
+      }
+    }
   }
   .el-table {
     border-width: 1px;
@@ -301,9 +517,30 @@
       margin-top: 20px;
     }
   }
+  .response-block {
+    position: relative;
+
+    .el-button {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+    }
+  }
+  .response {
+    .el-tag {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .body {
+      border-radius: 4px;
+    }
+  }
 </style>
 <style lang="scss">
-  @import url('https://fonts.googleapis.com/css?family=Roboto+Mono|Source+Sans+Pro:300,400,600');
   .document {
     position: relative;
     width: 100%;
@@ -385,42 +622,42 @@
           background: rgba(0, 0, 0, .07)
         }
 
-        a, span {
+        a { font-size: 14px; }
+
+        a, .module-name {
           display: block;
-          padding: 8px 15px;
+          padding: 6px 15px;
           color: #364149;
           text-overflow: ellipsis;
           overflow: hidden;
           white-space: nowrap;
         }
 
-        span {
+        .module-name {
           color: #7f8c8d;
           opacity: 0.6;
           cursor: not-allowed;
         }
 
-        a {
-          font-size: 14px;
+        .el-tag {
+          height: 20px;
+          line-height: 18px;
+          vertical-align: middle;
         }
 
         &.active > a {
-          color: #42b983;
-        }
-
-        ul {
-          padding-left: 20px
+          color: #20a0ff;
         }
       }
     }
   }
   .document-debugger {
-    position: absolute;
-    top: 0;
+    position: fixed;
+    top: 61px;
     right: -100%;
     width: 100%;
     height: 100%;
-    bottom: 0;
+    padding-bottom: 60px;
     z-index: 10;
     overflow-y: auto;
     color: #364149;
@@ -428,12 +665,12 @@
     background-color: #fff;
 
     .page-header {
-      padding: 20px 30px;
+      padding: 20px;
 
       .el-icon-close {
         position: absolute;
         top: 25px;
-        right: 30px;
+        right: 20px;
         margin-right:0;
         color: #ccc;
         font-size: 20px;
@@ -445,8 +682,22 @@
       }
     }
 
+    .el-nodata {
+      display: inline-block;
+      padding: 20px 0;
+      font-size: 12px;
+
+      .fa {
+        font-size: 50px;
+      }
+    }
+
     .el-input-group {
       width: 100%;
+    }
+
+    .el-form-item {
+      margin-bottom: 10px;
     }
 
     .el-input-group__prepend {
@@ -466,7 +717,7 @@
         width: 45%;
 
         &, .el-input__inner {
-          height: 38px;
+          height: 34px;
         }
 
         .el-input__inner {
@@ -477,16 +728,19 @@
       }
     }
 
-    .el-input-group__append {
-      .el-button.is-disabled, .el-button.is-disabled:hover, .el-button.is-disabled:focus {
-        background-color: transparent;
-        border-color: transparent;
-        opacity: .3;
+    .el-input-group {
+      .el-button.is-disabled {
+        &, &:hover, &:focus {
+          background-color: transparent;
+          border-color: transparent;
+          opacity: .3;
+        }
       }
-    }
 
-    .response {
-      margin: 0 30px;
+      .el-input__inner {
+        position: relative;
+        z-index: 2;
+      }
     }
   }
   .document-header {
@@ -496,35 +750,14 @@
     color: #7e888b;
 
     .fa {
-      padding: 0 15px;
+      padding-left: 20px;
       margin: 0;
       color: #ccc;
       font-size: 14px;
-    }
-
-    .fa-align-justify {
       cursor: pointer;
 
       &:hover {
         color: #444;
-      }
-    }
-
-    .fa-angle-right {
-      font-size: 20px;
-    }
-
-    .el-button {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-
-      .fa {
-        height: auto;
-        line-height: 1em;
-        padding: 0;
-        color: #fff;
-        margin-right: 3px;
       }
     }
   }
@@ -560,9 +793,15 @@
 
     .normal {
       pre, code {
+        color: #666;
+
+        .hljs-jsonp {
+          color: #20a0ff;
+          font-weight: bold;
+        }
         .hljs-comment,
         .hljs-title {
-          color: #8e908c;
+          color: #bbb;
         }
         .hljs-variable,
         .hljs-attribute,
@@ -586,7 +825,7 @@
         .hljs-literal,
         .hljs-params,
         .hljs-constant {
-          color: #f5871f;
+          color: #ff4949;
         }
         .ruby .hljs-class .hljs-title,
         .css .hljs-rules .hljs-attribute {
@@ -895,6 +1134,7 @@
       &.lang-html:after,
       &.lang-js:after,
       &.lang-json:after,
+      &.lang-jsonp:after,
       &.lang-bash:after,
       &.lang-css:after {
         position: absolute;
@@ -902,7 +1142,7 @@
         right: 0;
         color: #ccc;
         text-align: right;
-        font-size: 0.75em;
+        font-size: 1em;
         line-height: 15px;
         height: 15px;
         font-weight: 600;
@@ -916,6 +1156,9 @@
       &.lang-json:after {
         content: 'JSON';
       }
+      &.lang-jsonp:after {
+        content: 'JSONP';
+      }
       &.lang-bash:after {
         content: 'Shell';
       }
@@ -924,9 +1167,12 @@
       }
     }
   }
-  .el-table .row-required {
-    .el-table_1_column_1 {
-      color: #20a0ff;
+  .el-table {
+    tr {
+      color: #7f8c8d;
+    }
+    .row-required {
+      color: #000;
     }
   }
 </style>

@@ -1,58 +1,83 @@
 <template>
-  <section :class="'api-editor-container' + (api.id ? ' api-edit':'')" v-loading.body="loading" element-loading-text="加载中">
-    <el-form :model="api" :rules="rules" ref="api" @submit.native.prevent="handleSubmit">
-      <el-form-item label="接口名称" prop="name">
-        <el-input type="text" v-model="api.name"></el-input>
-      </el-form-item>
-      <el-form-item prop="method">
-        <el-select v-model="api.method" placeholder="请求方法">
-          <el-option v-for="method in HTTP_METHOD" :label="method" :value="method"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="接口路径" prop="path">
-        <el-input v-model="api.path">
-          <template slot="prepend">{{ project.base_url }}</template>
-        </el-input>
-      </el-form-item>
-      <el-form-item label="描述说明" prop="description">
-        <el-editor v-model="api.description" :toolbar="toolbar" :on-typing="handleTyping"></el-editor>
-      </el-form-item>
-      <el-form-item prop="status">
-        <el-select v-model="api.status" placeholder="接口状态">
-          <el-option v-for="status in statusMap" :label="status.text" :value="status.value"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item>
-        <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存接口信息</el-button>
-      </el-form-item>
-    </el-form>
-    <el-tabs v-if="api.response && api.response.length > 0 " type="card" :closable="true" @tab-click="handleClick" @tab-remove="handleRemove">
-      <el-tab-pane v-for="response in api.response">
-        <span slot="label">
-          {{ response.description || '新增响应' }}
-          <i v-if="response.id" class="fa fa-clone" title="复制响应" @click="handleDuplicate(response)"></i>
-        </span>
-        <el-response :key="response.id" :data="response"></el-response>
+  <section :class="'api-editor-container' + (model && model.id ? ' api-edit':'')" v-loading.body="loading" element-loading-text="加载中">
+    <div class="page-header">
+      <h1 class="pull-left">接口信息</h1>
+      <el-button v-if="model && model.id" class="pull-right" :plain="true" type="primary"> <router-link :to="{ name: 'document-view', params: { id: model.id } }"><i class="fa fa-file-code-o"></i>查看文档</router-link> </el-button>
+    </div>
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="基本信息" name="basic">
+        <el-form :model="model" :rules="rules" ref="api" @submit.native.prevent="handleSubmit">
+          <el-form-item label="接口名称" prop="name">
+            <el-input type="text" v-model="model.name"></el-input>
+          </el-form-item>
+          <el-form-item label="请求方法" prop="method">
+            <el-select v-model="model.method" placeholder="请选择请求方法">
+              <el-option v-for="method in HTTP_METHOD" :key="method" :label="method" :value="method"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="接口路径" prop="path">
+            <el-input v-model="model.path">
+              <template slot="prepend">{{ project.base_url }}</template>
+            </el-input>
+          </el-form-item>
+          <el-form-item label="描述说明" prop="description">
+            <el-editor v-model="model.description" :toolbar="toolbar" :on-typing="handleTyping"></el-editor>
+          </el-form-item>
+          <el-form-item label="接口状态" prop="status">
+            <el-select v-model="model.status" placeholder="请选择接口状态">
+              <el-option v-for="status in statusMap" :key="status.value" :label="status.text" :value="status.value"></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="兜底数据连接" prop="backup_url">
+            <el-input type="text" v-model="model.backup_url" placeholder="当接口请求失败时用来保证页面正常展示的兜底数据"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存接口信息</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+      <el-tab-pane v-if="model && model.id" label="响应信息" name="response">
+        <el-tabs type="card" v-model="editableTabsValue" :closable="true" @tab-remove="handleDelete">
+          <el-tab-pane v-for="response in model.response" :name="response.id + ''" :key="response.id">
+            <span slot="label">
+              {{ response.description }}<i v-if="response.id" class="fa fa-clone" title="复制响应" @click="handleDuplicate(response)"></i>
+            </span>
+            <el-response :key="response.id" :apiModel="model" :data="response"></el-response>
+          </el-tab-pane>
+          <el-tab-pane name="new">
+            <span slot="label">新增响应</span>
+            <el-response :apiModel="model"></el-response>
+          </el-tab-pane>
+        </el-tabs>
+      </el-tab-pane>
+      <el-tab-pane v-if="model && model.id" label="状态码" name="error">
+        <el-error v-for="(error, index) in errors" :data="error" :key="error.id"></el-error>
+        <el-error></el-error>
       </el-tab-pane>
     </el-tabs>
   </section>
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
+  import { showNotify, showConfirm } from '../../utils'
   import { HTTP_METHOD } from '../../config'
   import ElEditor from '../../components/editor.vue'
   import ElResponse from './response.vue'
+  import ElError from './error.vue'
 
   export default {
     components: {
       ElEditor,
-      ElResponse
+      ElResponse,
+      ElError,
     },
     data() {
       return {
         HTTP_METHOD,
         loading: true,
         disabled: false,
+        activeName: 'basic',
+        editableTabsValue: 'new',
         toolbar: [
           'bold',
           'italic',
@@ -70,7 +95,7 @@
           { text: '开发中', value: '0' },
           { text: '使用中', value: '1' }
         ],
-        api: {
+        model: {
           id: '',
           name: '',
           description: '',
@@ -91,55 +116,25 @@
         }
       }
     },
-    computed: mapGetters({
-      user: 'user',
-      project: 'project',
-      currentApi: 'api'
-    }),
-    beforeRouteEnter({ params: { id, module_id } }, from, next) {
-      next(async(vm) => {
-        let route = { name: 'project-module', params: { code: vm.project.code } }
-
-        if (id) {
-          let result = await vm.fetchApi({ id })
-
-          if (result.code !== 0) {
-            next(route)
-          }
-
-        } else {
-          if (module_id) {
-            let result = await vm.fetchModule({ id: module_id })
-
-            if (result.code === 0 && result.data.id) {
-              vm.api = {
-                id: '',
-                name: '',
-                description: '',
-                method: '',
-                path: '',
-                status: '0',
-                module_id
-              }
-            } else {
-              next(route)
-            }
-          } else {
-            next(route)
-          }
-        }
-
-        await vm.fetchParams({ project_id: vm.project.id })
-        await vm.fetchFields({ project_id: vm.project.id })
-
-        vm.loading = false
-      })
-    },
+    computed: mapGetters([
+      'user',
+      'project',
+      'api',
+      'errors'
+    ]),
     watch: {
-      currentApi: {
-        handler: 'loadData',
+      $route: 'loadData',
+      api: {
+        handler(api) {
+          this.model = JSON.parse(JSON.stringify(api))
+        },
         deep: true
       }
+    },
+    beforeRouteEnter(to, from, next) {
+      next((vm) => {
+        vm.loadData()
+      })
     },
     methods: {
       ...mapActions([
@@ -150,27 +145,47 @@
         'duplicateResponse',
         'deleteResponse',
         'fetchParams',
-        'fetchFields'
+        'fetchFields',
+        'fetchErrors',
+        'appendApiError'
       ]),
       handleTyping(value) {
         this.description = value
       },
-      handleDuplicate(response) {
+      async handleDuplicate(response) {
         let data = JSON.parse(JSON.stringify(response))
         data.description = data.description + '_copy'
-        this.duplicateResponse(data)
+        let result = await this.duplicateResponse(data)
+
+        showNotify(this, result)
       },
-      handleRemove(tab) {
-        this.api.response.forEach(async(response) => {
-          if ('tab' + response.id === tab.name) {
-            await this.deleteResponse(response)
+      handleDelete(targetName) {
+        this.model.response.forEach(response => {
+          if (response.id == targetName) {
+            showConfirm(this, '确定删除该响应?', async (ctx) => {
+              let result = await ctx.deleteResponse(response)
+              showNotify(ctx, result, ctx => {
+                ctx.selectTab(ctx)
+              })
+            })
+
             return false
           }
         })
 
         return false
       },
-      handleClick(tab, event) {
+      async handleClick(tab) {
+        this.loading = true
+
+        if (tab.name === 'error') {
+          await this.fetchErrors({ project_id: this.project.id, api_id: this.$route.params.id || 0 })
+        } else if (tab.name === 'response') {
+          await this.fetchParams({ project_id: this.project.id })
+          await this.fetchFields({ project_id: this.project.id })
+        }
+
+        this.loading = false
       },
       handleSubmit() {
         this.$refs.api.validate(async(valid) => {
@@ -178,91 +193,99 @@
 
           if (valid) {
             this.disabled = true
-            this.api.description = this.description
-            this.api.project_id = this.project.id
+            this.model.description = this.description
+            this.model.project_id = this.project.id
 
-            if (this.api.id) {
-              result = await this.updateApi(this.api)
+            if (this.model.id) {
+              result = await this.updateApi(this.model)
             } else {
-              result = await this.createApi(this.api)
+              result = await this.createApi(this.model)
             }
 
-            this.api = JSON.parse(JSON.stringify(this.api))
+            this.model = JSON.parse(JSON.stringify(this.model))
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-
-              if (!this.$route.params.id) {
-                this.$router.push({ name: 'project-api-edit', params: { code: this.project.code, id: result.data.id } })
+            showNotify(this, result, ctx => {
+              if (!ctx.$route.params.id) {
+                ctx.$router.push({ name: 'project-api-edit', params: { code: ctx.project.code, id: result.data.id } })
               }
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            })
           } else {
             return false
           }
         })
       },
-      loadData() {
-        let param = {
-          id: '',
-          name: '',
-          type: '',
-          length: '',
-          default_value: '',
-          required: false,
-          description: ''
+      selectTab(ctx) {
+        if (ctx.model.response && ctx.model.response.length > 0) {
+          ctx.editableTabsValue = ctx.model.response[0].id + ''
+        } else {
+          ctx.editableTabsValue = 'new'
         }
+      },
+      async loadData() {
+        let id = this.$route.params.id
+        let module_id = this.$route.params.module_id
 
-        let response = {
-          id: '',
-          type: '',
-          description: '',
-          enctype: '',
-          body: '{}',
-          api_id: this.api.id,
-          param: [param]
-        }
+        if (id) {
+          let result = await this.fetchApi({ id })
 
-        this.api = JSON.parse(JSON.stringify(this.currentApi))
+          if (result.code === 0) {
+            this.model = JSON.parse(JSON.stringify(result.data))
 
-        if (this.api.response) {
-          this.api.response.forEach(response => {
-            if (response.param) {
-              if (response.param[response.param.length - 1].id) {
-                response.param.push(param)
-              }
-            } else {
-              response.param = [param]
-            }
-          })
-
-          if (this.api.response[this.api.response.length - 1].id) {
-            this.api.response.push(response)
+            this.selectTab(this)
           }
         } else {
-          this.api.response = [response]
+          if (module_id) {
+            let result = await this.fetchModule({ id: module_id })
+
+            if (result.code === 0 && result.data.id) {
+              this.editableTabsValue = 'new'
+
+              this.model = {
+                id: '',
+                name: '',
+                description: '',
+                method: '',
+                path: '',
+                status: '',
+                module_id
+              }
+            }
+          }
         }
+
+        this.loading = false
       }
     }
   }
 </script>
 <style lang="scss">
   .api-editor-container {
+    .page-header {
+      padding: 20px;
+      border-bottom: none;
+    }
+    .el-tabs__header {
+      padding: 0;
+    }
+    .el-tab-pane {
+      .el-tabs__header {
+        background-color: transparent;
+      }
+      .el-tab-pane {
+        padding: 15px;
+        border: 1px solid rgb(209, 219, 229);
+        border-top: none;
+      }
+    }
+    .el-tabs__item.is-active {
+      background-color: transparent;
+    }
     .el-tabs--card {
       .el-tabs__item {
-        &:last-child:before {
+        &:last-child:after {
           display: inline-block;
-          margin-right: 5px;
+          margin-left: 5px;
           font: normal normal normal 14px/1 FontAwesome;
           font-size: inherit;
           text-rendering: auto;
@@ -275,8 +298,11 @@
         }
       }
     }
+    .el-form {
+      padding: 0;
+    }
     .el-tab-pane {
-      padding: 20px 35px 50px;
+      padding: 20px;
     }
     .el-tabs__item:last-child {
       .el-icon-close {
@@ -286,8 +312,23 @@
     .fa-clone {
       margin-left: 5px;
     }
-  }
-  .api-edit .el-form {
-    background-color: #fafafa;
+    .ace_scroller:after {
+      position: absolute;
+      content: 'JSON';
+      font-size: 10rem;
+      color: #f5f5f5;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .el-form-param {
+      .el-select {
+        &:hover, &:focus {
+          .el-input__inner {
+            border-color: transparent transparent #20a0ff transparent;
+          }
+        }
+      }
+    }
   }
 </style>

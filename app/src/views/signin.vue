@@ -12,7 +12,7 @@
           <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">登录</el-button>
           <div class="el-form-help">
             <router-link class="pull-left" :to="{ name: 'signup' }">立即注册</router-link>
-            <router-link class="pull-right" :to="{ name: 'signup' }">忘记密码?</router-link>
+            <router-link class="pull-right" :to="{ name: 'password' }">忘记密码?</router-link>
           </div>
         </el-form-item>
       </el-form>
@@ -21,14 +21,15 @@
 </template>
 <script type="text/babel">
   import { mapActions } from 'vuex'
+  import { showNotify } from '../utils'
 
   export default {
     data() {
       return {
         disabled: false,
         user: {
-          email: '',
-          password: ''
+          email: 'and1coder@gmail.com',
+          password: '123456'
         },
         rules: {
           email: [
@@ -48,16 +49,18 @@
           if (valid) {
             this.disabled = true
 
-            await this.signIn(this.user)
+            let result = await this.signIn(this.user)
             let next = this.$route.query.next
 
             this.disabled = false
 
-            if(next) {
-              this.$router.push(next)
-            } else {
-              this.$router.push('/')
-            }
+            showNotify(this, result, ctx => {
+              if (next) {
+                ctx.$router.push(next)
+              } else {
+                ctx.$router.push('/')
+              }
+            })
           } else {
             return false
           }

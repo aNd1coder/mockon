@@ -42,6 +42,10 @@ export default class extends Base {
 
     delete data[pk]
 
+    if (!await this.memberOf(data.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     if (think.isEmpty(data)) {
       return this.fail('data is empty')
     }
@@ -49,6 +53,16 @@ export default class extends Base {
     data.user_id = user.id
 
     data.id = await this.modelInstance.add(data)
+
+    if (data.id) {
+      let projectModelInstance = this.model('project')
+      let project = await projectModelInstance.where({ id: data.project_id }).find()
+
+      await this.createLogger({
+        description: `添加了项目【${project.name}】字段【${data.name}】`,
+        project_id: data.project_id
+      })
+    }
 
     return this.success(data)
   }
@@ -58,7 +72,24 @@ export default class extends Base {
       return this.fail('params error')
     }
     let pk = await this.modelInstance.getPk()
+    let field = await this.modelInstance.where({ [pk]: this.id }).find()
+
+    if (!await this.memberOf(field.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     let rows = await this.modelInstance.where({ [pk]: this.id }).delete()
+
+    if (rows > 0) {
+      let projectModelInstance = this.model('project')
+      let project = await projectModelInstance.where({ id: field.project_id }).find()
+
+      await this.createLogger({
+        description: `删除了项目【${project.name}】字段【${field.name}】`,
+        project_id: field.project_id
+      })
+    }
+
     return this.success({ affectedRows: rows })
   }
 
@@ -70,6 +101,10 @@ export default class extends Base {
     let pk = await this.modelInstance.getPk()
     let data = this.post()
 
+    if (!await this.memberOf(data.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     delete data[pk]
     delete data.created_at
     delete data.modified_at
@@ -79,6 +114,16 @@ export default class extends Base {
     }
 
     let rows = await this.modelInstance.where({ [pk]: this.id }).update(data)
+
+    if (rows > 0) {
+      let projectModelInstance = this.model('project')
+      let project = await projectModelInstance.where({ id: data.project_id }).find()
+
+      await this.createLogger({
+        description: `更新了项目【${project.name}】字段【${data.name}】信息`,
+        project_id: data.project_id
+      })
+    }
 
     return this.success({ affectedRows: rows })
   }

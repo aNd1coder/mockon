@@ -89,7 +89,7 @@
 }
 
 .el-checkbox{
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     position: relative;
     cursor: pointer;
     display: inline-block;
@@ -115,7 +115,7 @@
 
 .el-checkbox__input.is-indeterminate .el-checkbox__inner{
     background-color: #20a0ff;
-    border-color: #2e90fe
+    border-color: rgb(1, 144, 254)
 }
 
 .el-checkbox__input.is-indeterminate .el-checkbox__inner::before{
@@ -139,7 +139,7 @@
 
 .el-checkbox__input.is-checked .el-checkbox__inner{
     background-color: #20a0ff;
-    border-color: #2e90fe
+    border-color: rgb(1, 144, 254)
 }
 
 .el-checkbox__input.is-checked .el-checkbox__inner::after{
@@ -147,14 +147,14 @@
 }
 
 .el-checkbox__input.is-disabled .el-checkbox__inner{
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
     cursor: not-allowed
 }
 
 .el-checkbox__input.is-disabled .el-checkbox__inner::after{
     cursor: not-allowed;
-    border-color: #EFF2F7
+    border-color: rgb(238, 241, 246)
 }
 
 .el-checkbox__input.is-disabled .el-checkbox__inner + .el-checkbox__label{
@@ -162,8 +162,8 @@
 }
 
 .el-checkbox__input.is-disabled.is-checked .el-checkbox__inner{
-    background-color: #D3DCE6;
-    border-color: #D3DCE6
+    background-color: rgb(209, 219, 229);
+    border-color: rgb(209, 219, 229)
 }
 
 .el-checkbox__input.is-disabled.is-checked .el-checkbox__inner::after{
@@ -171,8 +171,8 @@
 }
 
 .el-checkbox__input.is-disabled.is-indeterminate .el-checkbox__inner{
-    background-color: #D3DCE6;
-    border-color: #D3DCE6
+    background-color: rgb(209, 219, 229);
+    border-color: rgb(209, 219, 229)
 }
 
 .el-checkbox__input.is-disabled.is-indeterminate .el-checkbox__inner::before{
@@ -187,7 +187,7 @@
 .el-checkbox__inner{
     display: inline-block;
     position: relative;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     border-radius: 4px;
     box-sizing: border-box;
     width: 18px;
@@ -223,6 +223,7 @@
     outline: none;
     position: absolute;
     margin: 0;
+    visibility: hidden;
     left: -999px
 }
 
@@ -303,12 +304,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

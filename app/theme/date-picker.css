@@ -106,17 +106,28 @@
 }
 .el-date-table td.today {
     color: #20a0ff;
+    position: relative;
+}
+.el-date-table td.today:before {
+    content: " ";
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 0;
+    height: 0;
+    border-top: 0.5em solid #20a0ff;
+    border-left: .5em solid transparent;
 }
 .el-date-table td.available:hover {
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-date-table td.in-range {
-    background-color: #D3ECFF;
+    background-color: rgb(210, 236, 255);
 }
 .el-date-table td.in-range:hover {
-    background-color: #AFDCFF;
+    background-color: rgb(175, 221, 255);
 }
-.el-date-table td.current, .el-date-table td.start-date, .el-date-table td.end-date {
+.el-date-table td.current:not(.disabled), .el-date-table td.start-date, .el-date-table td.end-date {
     background-color: #20a0ff !important;
     color: #fff;
 }
@@ -128,19 +139,19 @@
 }
 .el-date-table td.week {
     font-size: 80%;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
 }
 .el-date-table th {
     padding: 5px;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
     font-weight: 400;
 }
 .el-date-table.is-week-mode .el-date-table__row {}
 .el-date-table.is-week-mode .el-date-table__row:hover {
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-date-table.is-week-mode .el-date-table__row.current {
-    background-color: #D3ECFF;
+    background-color: rgb(210, 236, 255);
 }
 :root {
     /* Transition
@@ -245,17 +256,17 @@
     height: 32px;
     display: block;
     line-height: 32px;
-    color: #475669;
+    color: rgb(72, 87, 106);
 }
 .el-month-table td .cell:hover {
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-month-table td.disabled .cell {
     background-color: #f4f4f4;
     cursor: not-allowed;
     color: #ccc;
 }
-.el-month-table td.current .cell {
+.el-month-table td.current:not(.disabled) .cell {
     background-color: #20a0ff !important;
     color: #fff;
 }
@@ -353,7 +364,7 @@
     border-collapse: collapse;
 }
 .el-year-table .el-icon {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-year-table td {
     text-align: center;
@@ -365,17 +376,17 @@
     height: 32px;
     display: block;
     line-height: 32px;
-    color: #475669;
+    color: rgb(72, 87, 106);
 }
 .el-year-table td .cell:hover {
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-year-table td.disabled .cell {
     background-color: #f4f4f4;
     cursor: not-allowed;
     color: #ccc;
 }
-.el-year-table td.current .cell {
+.el-year-table td.current:not(.disabled) .cell {
     background-color: #20a0ff !important;
     color: #fff;
 }
@@ -471,8 +482,11 @@
 .el-time-spinner.has-seconds .el-time-spinner__wrapper {
     width: 33%;
 }
+.el-time-spinner.has-seconds .el-time-spinner__wrapper .el-scrollbar__wrap:not(.el-scrollbar__wrap--hidden-default) {
+    padding-bottom: 15px;
+}
 .el-time-spinner.has-seconds .el-time-spinner__wrapper:nth-child(2) {
-    padding-left: 1%;
+    margin-left: 1%;
 }
 .el-time-spinner__wrapper {
     max-height: 190px;
@@ -500,14 +514,14 @@
     font-size: 12px;
 }
 .el-time-spinner__item:hover:not(.disabled):not(.active) {
-    background: #e5e9f2;
+    background: rgb(228, 232, 241);
     cursor: pointer;
 }
 .el-time-spinner__item.active:not(.disabled) {
     color: #fff;
 }
 .el-time-spinner__item.disabled {
-    color: #d3dce6;
+    color: rgb(209, 219, 229);
     cursor: not-allowed;
 }
 :root {
@@ -729,6 +743,13 @@
 .collapse-transition {
     transition: 0.3s height ease-in-out, 0.3s padding-top ease-in-out, 0.3s padding-bottom ease-in-out;
 }
+.list-enter-active, .list-leave-active {
+    transition: all 1s;
+}
+.list-enter, .list-leave-active {
+    opacity: 0;
+    transform: translateY(-30px);
+}
 .el-date-editor {
     position: relative;
     display: inline-block;
@@ -930,8 +951,8 @@
   --------------------------*/
 }
 .el-picker-panel {
-    color: #475669;
-    border: 1px solid #d3dce6;
+    color: rgb(72, 87, 106);
+    border: 1px solid rgb(209, 219, 229);
     box-shadow: 0 2px 6px #ccc;
     background: #fff;
     border-radius: 2px;
@@ -962,14 +983,14 @@
     background-color: transparent;
     line-height: 28px;
     font-size: 14px;
-    color: #475669;
+    color: rgb(72, 87, 106);
     padding-left: 12px;
     text-align: left;
     outline: none;
     cursor: pointer;
 }
 .el-picker-panel__shortcut:hover {
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-picker-panel__shortcut.active {
     background-color: #e6f1fe;
@@ -992,7 +1013,7 @@
 }
 .el-picker-panel__icon-btn {
     font-size: 12px;
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
     border: 0;
     background: transparent;
     cursor: pointer;
@@ -1247,7 +1268,7 @@
     font-size: 20px;
     vertical-align: middle;
     display: table-cell;
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-date-range-picker__time-picker-wrap {
     position: relative;
@@ -1372,7 +1393,7 @@
 }
 .el-time-range-picker__body {
     border-radius: 2px;
-    border: 1px solid #d3dce6;
+    border: 1px solid rgb(209, 219, 229);
 }
 :root {
     /* Transition
@@ -1464,7 +1485,7 @@
 }
 .el-time-panel {
     margin: 5px 0;
-    border: solid 1px #d3dce6;
+    border: solid 1px rgb(209, 219, 229);
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
     border-radius: 2px;
@@ -1633,22 +1654,19 @@
     width: 100%;
 }
 .el-input.is-disabled .el-input__inner {
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
     color: #bbb;
     cursor: not-allowed;
 }
 .el-input.is-disabled .el-input__inner::-webkit-input-placeholder {
-    color: #C0CCDA;
-}
-.el-input.is-disabled .el-input__inner::-moz-placeholder {
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-input.is-disabled .el-input__inner:-ms-input-placeholder {
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-input.is-disabled .el-input__inner::placeholder {
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-input.is-active .el-input__inner {
     outline: none;
@@ -1661,12 +1679,12 @@
     background-color: #fff;
     background-image: none;
     border-radius: 4px;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     box-sizing: border-box;
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     display: block;
     font-size: inherit;
-    height: 40px;
+    height: 36px;
     line-height: 1;
     outline: none;
     padding: 3px 10px;
@@ -1674,19 +1692,16 @@
     width: 100%;
 }
 .el-input__inner::-webkit-input-placeholder {
-    color: #99a9bf;
-}
-.el-input__inner::-moz-placeholder {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-input__inner:-ms-input-placeholder {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-input__inner::placeholder {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-input__inner:hover {
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-input__inner:focus {
     outline: none;
@@ -1699,7 +1714,7 @@
     right: 0;
     top: 0;
     text-align: center;
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     transition: all .3s;
 }
 .el-input__icon:after {
@@ -1715,10 +1730,10 @@
 .el-input__icon.is-clickable {}
 .el-input__icon.is-clickable:hover {
     cursor: pointer;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
 }
 .el-input__icon.is-clickable:hover + .el-input__inner {
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-input--large {
     font-size: 16px;
@@ -1754,7 +1769,7 @@
     vertical-align: middle;
     display: table-cell;
     position: relative;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     border-radius: 4px;
     padding: 0 10px;
     width: 1%;
@@ -1798,22 +1813,19 @@
     vertical-align: bottom;
 }
 .el-textarea.is-disabled .el-textarea__inner {
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
     color: #bbb;
     cursor: not-allowed;
 }
 .el-textarea.is-disabled .el-textarea__inner::-webkit-input-placeholder {
-    color: #C0CCDA;
-}
-.el-textarea.is-disabled .el-textarea__inner::-moz-placeholder {
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-textarea.is-disabled .el-textarea__inner:-ms-input-placeholder {
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-textarea.is-disabled .el-textarea__inner::placeholder {
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-textarea__inner {
     display: block;
@@ -1823,27 +1835,24 @@
     box-sizing: border-box;
     width: 100%;
     font-size: 14px;
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     background-color: #fff;
     background-image: none;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     border-radius: 4px;
     transition: border-color .2s cubic-bezier(.645,.045,.355,1);
 }
 .el-textarea__inner::-webkit-input-placeholder {
-    color: #99a9bf;
-}
-.el-textarea__inner::-moz-placeholder {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-textarea__inner:-ms-input-placeholder {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-textarea__inner::placeholder {
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-textarea__inner:hover {
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-textarea__inner:focus {
     outline: none;
@@ -2062,12 +2071,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

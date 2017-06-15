@@ -1,51 +1,50 @@
 <template>
-  <section class="el-panel-group">
-    <div :class="'el-panel' + (panel[0].collapse ? ' el-panel--collapse ':'')">
-      <div class="el-panel-header">
-        <span class="el-panel-title" @click="handleCollapse(0)">基础信息 <i class="fa fa-angle-up"></i></span>
-      </div>
-      <div class="el-panel-container">
-        <el-form :model="response" :rules="rules" ref="response" @submit.native.prevent="handleSubmit">
-          <el-form-item label="描述" prop="description">
-            <el-input v-model="response.description"></el-input>
-          </el-form-item>
-          <el-form-item label="响应内容">
-            <el-button-group>
-              <el-button type="primary" size="small" :plain="true" @click="handleFormat">
-                <i class="fa fa-code"></i>格式化
-              </el-button>
-              <el-button type="primary" size="small" :plain="true" @click="handleComment">
-                <i class="fa fa-pencil"></i>字段描述
-              </el-button>
-            </el-button-group>
-            <div class="editor" ref="editor"></div>
-          </el-form-item>
-          <el-form-item prop="enctype">
-            <el-select v-model="response.enctype" placeholder="编码类型">
-              <el-option v-for="enctype in FORM_ENCTYPE" :label="enctype" :value="enctype"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item prop="type">
-            <el-select v-model="response.type" placeholder="响应类型">
-              <el-option v-for="type in RESPONSE_TYPE" :label="type" :value="type"></el-option>
-            </el-select>
-          </el-form-item>
-          <el-form-item>
-            <el-button native-type="submit" :disabled="disabled" :loading="disabled">保存响应信息</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
-    </div>
-    <div v-if="response.id" :class="'el-panel' + (panel[1].collapse ? ' el-panel--collapse ':'')">
-      <div class="el-panel-header">
-        <span class="el-panel-title" @click="handleCollapse(1)">请求参数 <i class="fa fa-angle-up"></i></span>
-      </div>
-      <div class="el-panel-container">
-        <el-param v-for="(param, index) in response.param" :response="response" :is-last="index === response.param.length -1" :data="param"></el-param>
-      </div>
-    </div>
+  <section>
+    <el-form :model="response" :rules="rules" ref="response" @submit.native.prevent="handleSubmit">
+      <el-form-item label="响应描述" prop="description">
+        <el-input v-model="response.description"></el-input>
+      </el-form-item>
+      <el-form-item label="编码类型" prop="enctype">
+        <el-select v-model="response.enctype" placeholder="请选择编码类型">
+          <el-option v-for="enctype in FORM_ENCTYPE" :key="enctype" :label="enctype" :value="enctype"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item label="JSONP Callback 名称" prop="jsonp_callback">
+        <el-input v-model="response.jsonp_callback" placeholder="非空则为 JSONP 响应"></el-input>
+      </el-form-item>
+      <el-form-item label="请求参数">
+        <el-param v-if="response && response.id" v-for="(param, index) in response.param" :key="param.id" :response="response" :data="param"></el-param>
+        <el-param :response="response && response.id ? response : {}"></el-param>
+      </el-form-item>
+      <el-form-item class="el-form-mockjs" prop="is_mockjs">
+        <el-switch v-model="response.is_mockjs" :width="80" on-text="Mockjs" off-text="Normal"></el-switch>
+      </el-form-item>
+      <el-form-item label="响应内容">
+        <el-button-group>
+          <el-button type="primary" size="small" :plain="true" @click="handleFormat">
+            <i class="fa fa-code"></i>格式化
+          </el-button>
+          <el-button type="primary" size="small" :plain="true" @click="handleComment">
+            <i class="fa fa-pencil"></i>字段描述
+          </el-button>
+        </el-button-group>
+        <div class="editor" ref="editor"></div>
+      </el-form-item>
+      <el-form-item label="响应类型" prop="type">
+        <el-select v-model="response.type" placeholder="请选择响应类型">
+          <el-option v-for="(label, type) in RESPONSE_TYPE" :key="type" :label="label" :value="type"></el-option>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存响应信息</el-button>
+      </el-form-item>
+    </el-form>
     <el-dialog title="字段描述" v-model="dialogVisible">
-      <el-field-block v-for="(value, name) in flattenBody" :response="response" :name="name"></el-field-block>
+      <el-field-block v-for="(value, name) in flattenBody" :key="name" :response="response" :name="name"></el-field-block>
+      <div v-if="apiModel.method === 'GET'" class="btn-backup">
+        <el-button type="primary" :disabled="disabled" :loading="disabled" @click="handleBindBackup">提交兜底服务数据</el-button>
+        <el-button :disabled="disabled" :loading="disabled" @click="handleUnbindBackup">禁用数据兜底服务</el-button>
+      </div>
     </el-dialog>
   </section>
 </template>
@@ -54,20 +53,21 @@
   import 'brace/mode/json'
   // katzenmilch/solarized_light/sqlserver/tomorrow/tomorrow_night_eighties
   import 'brace/theme/tomorrow'
+  import jsonSchemaGenerator from 'json-schema-generator'
+  import Mockjs from 'mockjs'
   import { mapGetters, mapActions } from 'vuex'
-  import { FORM_ENCTYPE, RESPONSE_TYPE } from '../../config'
-  import { flattenObject } from '../../utils'
+  import { FORM_ENCTYPE, RESPONSE_TYPE, BACKUP_API } from '../../config'
+  import { flattenObject, showNotify } from '../../utils'
   import ElParam from './param.vue'
-  import ElResponse from './field.vue'
   import ElFieldBlock from '../../components/field-block.vue'
 
   export default {
     components: {
       ElParam,
-      ElResponse,
       ElFieldBlock
     },
     props: {
+      apiModel: Object,
       data: Object
     },
     data() {
@@ -78,16 +78,15 @@
         dialogVisible: false,
         body: '',
         flattenBody: {},
-        panel: [
-          { collapse: false },
-          { collapse: false }
-        ],
+        newResponse: {},
         response: {
           id: '',
           type: '',
           description: '',
           enctype: '',
-          body: ''
+          jsonp_callback: '',
+          is_mockjs: false,
+          body: '{}'
         },
         rules: {
           description: [
@@ -98,6 +97,9 @@
           ],
           type: [
             { required: true, message: '请输入响应类型', trigger: 'blur' }
+          ],
+          body: [
+            { required: true, message: '请输入响应内容', trigger: 'blur' }
           ]
         }
       }
@@ -110,29 +112,17 @@
       }
     },
     mounted() {
+      this.newResponse = JSON.parse(JSON.stringify(this.response))
       this.loadData()
+      this.initEditor()
     },
     methods: {
-      ...mapActions(['createResponse', 'updateResponse']),
-      handleCollapse(index) {
-        this.panel[index].collapse = !this.panel[index].collapse
-      },
-      handleDelete() {
-        this.$confirm(
-          '确定删除该字段?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteResponse(this.response)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {
-        })
-      },
+      ...mapActions([
+        'createResponse',
+        'updateResponse',
+        'bindBackup',
+        'unBindBackup'
+      ]),
       handleSubmit() {
         this.$refs.response.validate(async(valid) => {
           if (valid) {
@@ -140,6 +130,7 @@
 
             this.disabled = true
             this.response.body = this.body
+            this.response.is_mockjs = this.response.is_mockjs === true ? 1 : 0
 
             if (this.response.id) {
               result = await this.updateResponse(this.response)
@@ -150,41 +141,72 @@
               result = await this.createResponse(this.response)
             }
 
-            this.response = JSON.parse(JSON.stringify(this.response))
+            if (this.response.id) {
+              this.response = JSON.parse(JSON.stringify(this.response))
+            } else {
+              this.response = JSON.parse(JSON.stringify(this.newResponse))
+            }
+
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result)
           }
         })
       },
       handleFormat() {
         if (this.response.body) {
-          this.loadData(true)
+          this.initEditor(true)
         }
       },
       handleComment() {
         this.flattenBody = flattenObject(JSON.parse(this.response.body))
         this.dialogVisible = true
       },
-      loadData(refresh) {
+      async handleBindBackup() {
+        let name = this.apiModel.name + this.response.description
+        let url = this.project.base_url + this.apiModel.path
+        let body = JSON.parse(this.response.body)
+        let is_mockjs = this.response.is_mockjs
+        let rules = jsonSchemaGenerator(is_mockjs ? Mockjs.mock(body) : body)
+        let callback = this.response.jsonp_callback
+        let type = callback ? 'jsonp' : 'cors'
+        let charset = 'utf-8'
+        let result = await this.bindBackup({
+          name,     // 接口名称
+          url,      // 接口地址
+          rules,    // 接口校验规则 json-schema
+          callback, // 数据在京东云上，涉及跨域
+          type,     // 接口类型，jsonp、cors两种，enum: ['jsonp', 'cors']
+          charset,  // 接口编码
+        })
+
+        result.code = result.rtn
+        result.message = result.msg
+
+        showNotify(this, result, ctx => {
+          ctx.response.backup_url = result.data.backup
+        })
+      },
+      async handleUnbindBackup() {
+        let backup = this.project.base_url + this.apiModel.path
+        let result = await this.unBindBackup({ backup })
+
+        result.code = result.rtn
+        result.message = result.msg
+
+        showNotify(this, result)
+      },
+      loadData() {
+        if (this.data && this.data.id) {
+          this.response = JSON.parse(JSON.stringify(this.data))
+          this.response.body = this.response.body || '{}'
+          this.response.is_mockjs = this.response.is_mockjs === 1 ? true : false
+        }
+      },
+      initEditor(refresh) {
         let editor
         let body
         let vm = this
-
-        this.response = JSON.parse(JSON.stringify(this.data))
-        this.response.body = this.response.body || '{}'
 
         editor = ace.edit(this.$refs.editor)
         editor.$blockScrolling = Infinity
@@ -221,37 +243,13 @@
       }
     }
   }
-  .el-panel {
-    margin-bottom: 20px;
-  }
-  .el-panel-header {
-    border-bottom: 1px solid #eeeeee;
+  .btn-backup {
+    margin-top: 20px;
 
-    .fa {
-      transition: transform .3s;
-    }
-  }
-  .el-panel-title {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #20a0ff;
-    bottom: -1px;
-    cursor: pointer;
-  }
-  .el-panel-container {
-    padding: 20px 0;
-    transition: all .3s;
-  }
-  .el-panel--collapse {
-    .fa {
-      vertical-align: -2px;
-      transform: rotate(180deg);
-    }
-    .el-panel-container {
-      padding: 0;
-      height: 0;
-      overflow: hidden;
+    .el-button {
+      display: block;
+      width: 100%;
+      margin: 10px 0 0 0;
     }
   }
   .el-button-group {
@@ -261,7 +259,6 @@
 
     .el-button {
       width: auto;
-      margin-left: 0;
       border-radius: 0;
       border-color: #c0ccda;
 
@@ -274,5 +271,17 @@
     width: 100%;
     min-height: 150px;
     border: 1px solid #c0ccda;
+  }
+</style>
+<style lang="scss">
+  .el-form-mockjs {
+    position: absolute;
+    right: 15px;
+    overflow: hidden;
+
+    .el-form-item__content {
+      float: left;
+      clear: none;
+    }
   }
 </style>

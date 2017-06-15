@@ -7,13 +7,6 @@
             <img class="logo" src="/static/img/logo.png" height="40">
           </router-link>
         </div>
-        <el-menu mode="horizontal">
-          <el-menu-item index="1">
-            <router-link :to="{ name: 'project' }">
-              <i class="fa fa-compass"></i>发现
-            </router-link>
-          </el-menu-item>
-        </el-menu>
         <el-menu v-if="signedIn" class="el-menu-right" mode="horizontal">
           <el-menu-item index="1">
             <el-badge is-dot>
@@ -24,16 +17,15 @@
           </el-menu-item>
           <el-submenu index="2">
             <template slot="title">
-              <img v-if="user.avatar" width="30" height="30" class="avatar" :src="user.avatar | imgformat"/>
-              <i v-else class="fa fa-user-circle-o avatar"></i>{{ user.nickname }}
+              <el-user-block :user="session" :size="30" :nameVisible="false"></el-user-block>
             </template>
-            <el-menu-item index="3-1">
-              <router-link :to="{ name: 'user', params: { username: user.username } }">我的主页</router-link>
+            <el-menu-item index="2-1">
+              <router-link :to="{ name: 'user', params: { username: session.username } }">我的主页</router-link>
             </el-menu-item>
-            <el-menu-item index="3-2">
+            <el-menu-item index="2-2">
               <router-link :to="{ name: 'user-profile' }">设置</router-link>
             </el-menu-item>
-            <el-menu-item index="3-3">
+            <el-menu-item index="2-3">
               <router-link :to="{ name: 'signout' }">退出</router-link>
             </el-menu-item>
           </el-submenu>
@@ -63,9 +55,12 @@
 </template>
 <script type="text/babel">
   import { mapGetters } from 'vuex'
+  import ElUserBlock from './components/user-block.vue'
 
   export default {
-    computed: mapGetters(['signedIn', 'user'])
+    name: 'app',
+    components: { ElUserBlock },
+    computed: mapGetters(['signedIn', 'session'])
   }
 </script>
 <style lang="scss">
@@ -105,6 +100,7 @@
     border-bottom: 1px solid #d3dce6;
     background-color: #eff2f7;
     z-index: 50;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, .1);
 
     &:after {
       visibility: hidden;
@@ -131,10 +127,11 @@
 
     .el-menu {
       float: left;
+      background-color: transparent;
 
       .el-menu-item, .el-submenu__title {
         &, &:hover, &.is-active {
-          border-bottom-width: 1px!important;
+          border-bottom-width: 1px !important;
         }
       }
 
@@ -144,9 +141,17 @@
       }
 
       .el-menu-item {
+        &:hover {
+          background-color: transparent;
+        }
         &.is-active {
           border-bottom-color: #20a0ff;
         }
+      }
+
+      .el-submenu .is-active {
+        background-color: transparent;
+        border-bottom-color: transparent;
       }
     }
 
@@ -176,11 +181,27 @@
       right: 20px;
     }
 
+    .el-user-block {
+      width: 30px;
+      height: 30px;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+
+    .el-user-avatar {
+      width: 30px;
+      height: 30px;
+
+      &:before {
+        font-size: 30px;
+      }
+    }
+
     .avatar {
       display: inline-block;
-      margin-right: 5px;
+
       border-radius: 3px;
-      vertical-align: middle;
+
     }
 
     .fa-user-circle-o {
@@ -222,10 +243,17 @@
     }
   }
   .el-form-block {
-    margin: 50px 20px;
+    margin: 50px 0;
     background-color: #eff2f7;
     border-radius: 5px;
     border-bottom: 1px solid #d4d4d4;
+  }
+  .el-form-item {
+    &.is-required {
+      .el-form-item__label:before {
+        display: none;
+      }
+    }
   }
   .el-form-item__content {
     clear: both;
@@ -233,17 +261,19 @@
   .el-tabs {
     width: 100%;
   }
+  .el-tabs__active-bar {
+    height: 1px;
+  }
   .el-tabs__header {
     padding: 0 20px;
     margin-bottom: 0;
     background-color: #fafafa;
   }
+  .el-tabs__item.is-active, .el-tab-pane {
+    background-color: #fff;
+  }
   .el-tabs__item {
     padding: 0 20px;
-
-    &.is-active {
-      background-color: #fff;
-    }
   }
   .el-tabs__content {
     overflow: visible;
@@ -268,5 +298,137 @@
   }
   .el-upload {
     width: 100%;
+  }
+  .project-plate {
+    position: relative;
+    margin-bottom: 20px;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+    transition: all 0.3s;
+
+    &, a {
+      font-size: 12px;
+    }
+
+    &:hover {
+      border-color: #20a0ff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+    }
+
+    a {
+      color: #666;
+
+      &:hover {
+        color: #20a0ff;
+      }
+    }
+
+    .fa-plus-circle {
+      display: block;
+      height: 128px;
+      line-height: 128px;
+      margin: 0;
+      text-align: center;
+      font-size: 50px;
+      color: #e5e5e5;
+
+      &:hover {
+        color: #20a0ff;
+      }
+    }
+  }
+  .project-plate-new {
+    border-style: dashed;
+  }
+  .project-plate-header,
+  .project-plate-content,
+  .project-plate-footer {
+    padding: 15px 15px 15px 95px;
+
+    .el-user-avatar {
+      width: 20px;
+      height: 20px;
+      margin-right: 3px;
+
+      &:before {
+        font-size: 20px;
+      }
+
+      img {
+        border-radius: 50%;
+      }
+    }
+  }
+  .project-plate-header {
+    position: relative;
+    border-bottom: 1px solid #e5e5e5;
+
+    .name {
+      margin: 0;
+      height: 22px;
+      color: #475669;
+      font-weight: normal;
+
+      a { font-size: 16px; }
+    }
+
+    .logo {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: 60px;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background-color: #fff;
+      border-radius: 5px;
+      border: 1px solid #e5e5e5;
+      font-size: 40px;
+      color: #20a0ff;
+
+      img {
+        max-width: 100%;
+      }
+    }
+
+    .el-tag {
+      position: absolute;
+      top:50%;
+      right: 10px;
+      height: 20px;
+      line-height: 20px;
+      margin-left: 10px;
+      transform: translateY(-50%);
+    }
+  }
+  .project-plate-content {
+    height: 33px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    color: #999;
+    font-size: 14px;
+    overflow: hidden;
+
+    a {
+      color: #20a0ff;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  .project-plate-footer {
+    padding-top: 0;
+    color: #666;
+    font-size: 0;
+    overflow: hidden;
+
+    .item {
+      position: relative;
+      display: inline-block;
+      margin-right: 10px;
+      font-size: 12px;
+      vertical-align: middle;
+    }
   }
 </style>

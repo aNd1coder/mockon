@@ -10,9 +10,10 @@ import field from './modules/field'
 import member from './modules/member'
 import error from './modules/error'
 import log from './modules/log'
+import notification from './modules/notification'
+import debug from './modules/debug'
 
 Vue.use(Vuex)
-const debug = process.env.NODE_ENV !== 'production'
 
 export default new Vuex.Store({
   modules: {
@@ -26,6 +27,8 @@ export default new Vuex.Store({
     member,
     error,
     log,
+    notification,
+    debug
   },
-  strict: debug,
+  strict: process.env.NODE_ENV !== 'production',
 })

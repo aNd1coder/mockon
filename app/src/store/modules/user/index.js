@@ -1,14 +1,14 @@
 import * as getters from './getters'
 import * as actions from './actions'
 import * as types from './mutation-types'
-import { getCookie, saveCookie, removeCookie } from '../../../utils'
 
-const userInfo = getCookie('userInfo')
-const current = userInfo ? JSON.parse(userInfo) : ''
-const token = getCookie('token') || ''
+const userInfo = localStorage.getItem('userInfo')
+const session = userInfo ? JSON.parse(userInfo) : ''
+const token = localStorage.getItem('token') || ''
 const initialState = {
   items: [],
-  current,
+  current: {},
+  session,
   token
 }
 
@@ -17,24 +17,29 @@ const mutations = {
     state.items = payload
   },
   [types.FETCH_USER](state, payload) {
+    state.current = payload
+  },
+  [types.SESSION_SIGNIN](state, payload) {
     if (payload.token) {
-      saveCookie('token', payload.token)
+      localStorage.setItem('token', payload.token)
       state.token = payload.token
       delete  payload.token
     }
-    saveCookie('userInfo', JSON.stringify(payload))
+    localStorage.setItem('userInfo', JSON.stringify(payload))
     state.current = payload
+    state.session = payload
   },
   [types.SESSION_SIGNOUT](state) {
     state.token = null
     state.items = null
     state.current = null
+    state.session = null
 
-    removeCookie('token')
-    removeCookie('userInfo')
+    localStorage.removeItem('token')
+    localStorage.removeItem('userInfo')
   },
   [types.REFRESH_TOKEN](state, payload) {
-    saveCookie('token', payload)
+    localStorage.setItem('token', payload)
     state.token = payload
   }
 }

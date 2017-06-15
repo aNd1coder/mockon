@@ -1,7 +1,7 @@
 {
-  "name": "thinkjs-application",
-  "description": "application created by thinkjs",
-  "version": "1.0.0",
+  "name": "mockon",
+  "version": "2.0.0",
+  "description": "API 文档管理及调试平台",
   "scripts": {
     "start": "node www/development.js",
     "compile": "babel src/ --out-dir app/",
@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "babel-runtime": "6.x.x",
-    "ccap": "^0.6.10",
     "jsonwebtoken": "^7.1.9",
+    "mockjs": "^1.0.1-beta3",
     "moment": "^2.17.0",
     "nodemailer": "^2.6.4",
     "source-map-support": "0.4.0",
+    "superagent": "^3.5.2",
+    "superagent-proxy": "^1.0.2",
     "think-cors": "^1.0.8",
     "thinkjs": "2.2.x"
   },

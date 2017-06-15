@@ -98,7 +98,7 @@
   height: 56px;
   line-height: 56px;
   font-size: 14px;
-  color: #475669;
+  color: rgb(72, 87, 106);
   padding: 0 20px;
   cursor: pointer;
   position: relative;
@@ -113,7 +113,7 @@
   position: relative;
   margin: 0;
   padding-left: 0;
-  background-color: #eff2f7;
+  background-color: rgb(238, 241, 246);
 }
 
 .el-menu li{
@@ -121,7 +121,7 @@
 }
 
 .el-menu--dark{
-  background-color: #324057;
+  background-color: rgb(50, 65, 87);
 }
 
 .el-menu--dark .el-menu-item, .el-menu--dark .el-submenu__title{
@@ -158,7 +158,7 @@
 }
 
 .el-menu--horizontal .el-menu-item:hover{
-  background-color: #d3dce6;
+  background-color: rgb(209, 219, 229);
 }
 
 .el-menu--horizontal .el-submenu{
@@ -201,7 +201,7 @@
 }
 
 .el-menu--horizontal .el-menu-item:hover, .el-menu--horizontal .el-submenu__title:hover{
-  background-color: #eff2f7;
+  background-color: rgb(238, 241, 246);
 }
 
 .el-menu--horizontal > .el-menu-item:hover, .el-menu--horizontal > .el-submenu:hover .el-submenu__title, .el-menu--horizontal > .el-submenu.is-active .el-submenu__title{
@@ -211,7 +211,7 @@
 .el-menu--horizontal.el-menu--dark{}
 
 .el-menu--horizontal.el-menu--dark .el-menu-item:hover, .el-menu--horizontal.el-menu--dark .el-submenu__title:hover{
-  background-color: #324057;
+  background-color: rgb(50, 65, 87);
 }
 
 .el-menu--horizontal.el-menu--dark .el-submenu .el-menu-item, .el-menu--horizontal.el-menu--dark .el-submenu .el-submenu-title{
@@ -375,12 +375,18 @@
   --------------------------*/
   /* Steps
   --------------------------*/
-  /* Steps
+  /* Menu
   --------------------------*/
   /* Rate
   --------------------------*/
   /* DatePicker
   --------------------------*/
   /* Loading
+  --------------------------*/
+  /* Scrollbar
+  --------------------------*/
+  /* Carousel
+  --------------------------*/
+  /* Collapse
   --------------------------*/
 }

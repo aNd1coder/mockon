@@ -1,0 +1,5 @@
+export const FETCH_DEBUGS = 'debug/FETCH_DEBUGS'
+export const FETCH_DEBUG = 'debug/FETCH_DEBUG'
+export const CREATE_DEBUG = 'debug/CREATE_DEBUG'
+export const DELETE_DEBUG = 'debug/DELETE_DEBUG'
+export const UPDATE_DEBUG = 'debug/UPDATE_DEBUG'

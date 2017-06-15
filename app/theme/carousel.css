@@ -142,6 +142,7 @@
     transform: translateX(-50%);
     margin: 0;
     padding: 0;
+    z-index: 2;
 }
 
 .el-carousel__indicators--outside{
@@ -156,7 +157,7 @@
 }
 
 .el-carousel__indicators--outside button {
-    background-color: #8492a6;
+    background-color: rgb(131, 145, 165);
     opacity: 0.24;
 }
 
@@ -270,12 +271,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

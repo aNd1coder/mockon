@@ -1,5 +1,7 @@
 <template>
-  <el-form :model="project" :class="project && project.id ? '' : 'el-form-block'" :rules="rules" ref="project" @submit.native.prevent="handleSubmit">
+  <section>
+    <h1 v-if="editMode" class="page-header">项目信息</h1>
+    <el-form :model="project" :class="project && project.id ? '' : 'el-form-block'" :rules="rules" ref="project" @submit.native.prevent="handleSubmit">
     <el-form-item label="项目名称" prop="name">
       <el-input type="text" v-model="project.name" placeholder=""></el-input>
     </el-form-item>
@@ -10,24 +12,22 @@
       <el-input type="text" v-model="project.base_url" placeholder="http://api.domain.com/v1"></el-input>
     </el-form-item>
     <el-form-item label="编码类型" prop="enctype">
-      <el-select v-model="project.enctype">
-        <el-option v-for="enctype in FORM_ENCTYPE" :label="enctype" :value="enctype"></el-option>
+      <el-select v-model="project.enctype" placeholder="请选择编码类型">
+        <el-option v-for="enctype in FORM_ENCTYPE" :key="enctype" :label="enctype" :value="enctype"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item label="项目图标" prop="image">
       <el-row>
         <el-col class="image-preview" :span="7">
-          <img v-if="project.image" :src="project.image | imgformat"/>
-          <i v-else class="fa fa-file-image-o"></i>
+          <img :src="project.image | imgformat"/>
         </el-col>
         <el-col :span="16" :offset="1">
-          <el-upload
-            type="drag"
+          <el-upload drag
             :action="UPLOAD_URL"
-            :thumbnail-mode="true"
             :on-success="handleSuccess">
             <i class="el-icon-upload"></i>
-            <div class="el-dragger__text">将文件拖到此处，或<em>点击上传</em></div>
+            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
           </el-upload>
         </el-col>
       </el-row>
@@ -36,22 +36,39 @@
       <el-editor v-model="project.description" :toolbar="toolbar" :on-typing="handleTyping"></el-editor>
     </el-form-item>
     <el-form-item label="是否私有" prop="private">
-      <el-switch on-text="私有" off-text="公开" v-model="project.private"></el-switch>
+      <el-switch on-text="私有" off-text="公开" v-model="private"></el-switch> 公开则对所有用户可见，也可被搜索到
+    </el-form-item>
+    <el-form-item label="项目状态" prop="status">
+      <el-select v-model="project.status" placeholder="请选择项目状态">
+        <el-option label="正常" value="0"></el-option>
+        <el-option label="废弃" value="1"></el-option>
+      </el-select>
     </el-form-item>
     <el-form-item>
       <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存</el-button>
     </el-form-item>
+    <el-form-item v-if="editMode">
+      <el-button v-if="session.id && project.user_id === session.id" type="danger" :disabled="disabled" :loading="disabled" @click="handleDelete">删除</el-button>
+    </el-form-item>
   </el-form>
+  </section>
 </template>
 <script type="text/babel">
-  import { mapActions } from 'vuex'
+  import { mapGetters, mapActions } from 'vuex'
   import ElEditor from '../../components/editor.vue'
   import { UPLOAD_URL, FORM_ENCTYPE } from '../../config'
+  import { showNotify, showConfirm }from '../../utils'
 
   export default {
     name: 'project-form',
     components: {
       ElEditor
+    },
+    props: {
+      editMode: {
+        type: Boolean,
+        default: true
+      }
     },
     data() {
       return {
@@ -68,6 +85,7 @@
           'preview',
         ],
         description: '',
+        private: false,
         project: {
           name: '',
           code: '',
@@ -90,51 +108,58 @@
         }
       }
     },
+    computed: mapGetters(['session']),
     async mounted(){
       let code = this.$route.params.code
 
       if (code) {
         let result = await this.fetchProject({ code })
         this.project = JSON.parse(JSON.stringify(result.data))
-        this.project.private = !!this.project.private
+        this.private = !!this.project.private
       }
     },
     methods: {
-      ...mapActions(['fetchProject', 'createProject', 'updateProject']),
+      ...mapActions([
+        'fetchProject',
+        'createProject',
+        'updateProject',
+        'deleteProject',
+        'deleteMember'
+      ]),
       handleTyping(value) {
         this.description = value
       },
       handleSuccess(result) {
         this.project.image = result.data
       },
+      handleDelete() {
+        showConfirm(this, '删除项目会连同关联的数据一并删除，确定要删除?', async (ctx) => {
+          let result = await ctx.deleteProject(ctx.project)
+          showNotify(ctx, result)
+        })
+      },
       handleSubmit() {
         this.$refs.project.validate(async(valid) => {
           if (valid) {
+            let result
+
             this.disabled = true
             this.project.description = this.description
-            this.project.private = this.project.private ? 1 : 0
+            this.project.private = this.private ? 1 : 0
 
             if (this.project.id) {
-              await this.updateProject(this.project)
-
-              this.$notify.success({
-                title: '提示',
-                message: '设置成功！',
-                duration: 3000
-              })
+              result = await this.updateProject(this.project)
             } else {
-              await this.createProject(this.project)
-
-              this.$notify.success({
-                title: '提示',
-                message: '创建成功！',
-                duration: 3000
-              })
-
-              this.$router.push({ name: 'project' })
+              result = await this.createProject(this.project)
             }
 
             this.disabled = false
+
+            showNotify(this, result)
+
+            if (result.code === 0) {
+              this.$router.push({ name: 'project' })
+            }
           } else {
             return false
           }
@@ -145,27 +170,37 @@
 </script>
 <style lang="scss" scoped>
   .image-preview {
+    position: relative;
     height: 180px;
-    line-height: 180px;
-    border: 1px solid #c0ccda;
-    text-align: center;
-    background-color: #f9fafc;
-    display: table-cell;
-    vertical-align: middle;
+    border: 1px dashed #d9d9d9;
+    background-color: #fff;
     border-radius: 4px;
     overflow: hidden;
 
-    img {
-      max-width: 100%;
-      max-height: 180px;
-      vertical-align: 3px;
+    &:before {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      font: normal normal normal 160px/1 FontAwesome;
+      text-rendering: auto;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      content: '\f09b';
+      color: #d9d9d9;
+      transform: translate(-50%, -50%);
     }
 
-    .fa {
-      margin: 0;
-      font-size: 50px;
-      color: #e0e0e0;
+    img {
+      position: relative;
+      top: 50%;
+      left: 50%;
+      max-width: 100%;
+      max-height: 100%;
+      transform: translate(-50%, -50%);
     }
   }
+</style>
+<style lang="scss">
+  .el-upload-dragger { width: 100%; }
 </style>
 

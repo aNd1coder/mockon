@@ -1,0 +1,5 @@
+export const FETCH_NOTIFICATIONS = 'notification/FETCH_NOTIFICATIONS'
+export const FETCH_NOTIFICATION = 'notification/FETCH_NOTIFICATION'
+export const CREATE_NOTIFICATION = 'notification/CREATE_NOTIFICATION'
+export const DELETE_NOTIFICATION = 'notification/DELETE_NOTIFICATION'
+export const UPDATE_NOTIFICATION = 'notification/UPDATE_NOTIFICATION'

@@ -186,7 +186,7 @@
 .el-select-dropdown{
     position: absolute;
     z-index: 1001;
-    border: solid 1px #d3dce6;
+    border: solid 1px rgb(209, 219, 229);
     border-radius: 2px;
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
@@ -202,7 +202,7 @@
     background-color: #fff;
 }
 .el-select-dropdown.is-multiple .el-select-dropdown__item.selected.hover{
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-select-dropdown.is-multiple .el-select-dropdown__item.selected::after{
     position: absolute;
@@ -222,7 +222,6 @@
 }
 .el-select-dropdown__wrap{
     max-height: 274px;
-    width: 100%;
 }
 .el-select-dropdown__list{
     list-style: none;
@@ -326,22 +325,19 @@
     width: 100%;
 }
 .el-input.is-disabled .el-input__inner{
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
     color: #bbb;
     cursor: not-allowed;
 }
 .el-input.is-disabled .el-input__inner::-webkit-input-placeholder{
-    color: #C0CCDA;
-}
-.el-input.is-disabled .el-input__inner::-moz-placeholder{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-input.is-disabled .el-input__inner:-ms-input-placeholder{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-input.is-disabled .el-input__inner::placeholder{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-input.is-active .el-input__inner{
     outline: none;
@@ -354,12 +350,12 @@
     background-color: #fff;
     background-image: none;
     border-radius: 4px;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     box-sizing: border-box;
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     display: block;
     font-size: inherit;
-    height: 40px;
+    height: 36px;
     line-height: 1;
     outline: none;
     padding: 3px 10px;
@@ -367,19 +363,16 @@
     width: 100%;
 }
 .el-input__inner::-webkit-input-placeholder{
-    color: #99a9bf;
-}
-.el-input__inner::-moz-placeholder{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-input__inner:-ms-input-placeholder{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-input__inner::placeholder{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-input__inner:hover{
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-input__inner:focus{
     outline: none;
@@ -392,7 +385,7 @@
     right: 0;
     top: 0;
     text-align: center;
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     transition: all .3s;
 }
 .el-input__icon:after{
@@ -408,10 +401,10 @@
 .el-input__icon.is-clickable{}
 .el-input__icon.is-clickable:hover{
     cursor: pointer;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
 }
 .el-input__icon.is-clickable:hover + .el-input__inner{
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-input--large{
     font-size: 16px;
@@ -447,7 +440,7 @@
     vertical-align: middle;
     display: table-cell;
     position: relative;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     border-radius: 4px;
     padding: 0 10px;
     width: 1%;
@@ -491,22 +484,19 @@
     vertical-align: bottom;
 }
 .el-textarea.is-disabled .el-textarea__inner{
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
     color: #bbb;
     cursor: not-allowed;
 }
 .el-textarea.is-disabled .el-textarea__inner::-webkit-input-placeholder{
-    color: #C0CCDA;
-}
-.el-textarea.is-disabled .el-textarea__inner::-moz-placeholder{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-textarea.is-disabled .el-textarea__inner:-ms-input-placeholder{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-textarea.is-disabled .el-textarea__inner::placeholder{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-textarea__inner{
     display: block;
@@ -516,27 +506,24 @@
     box-sizing: border-box;
     width: 100%;
     font-size: 14px;
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     background-color: #fff;
     background-image: none;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     border-radius: 4px;
     transition: border-color .2s cubic-bezier(.645,.045,.355,1);
 }
 .el-textarea__inner::-webkit-input-placeholder{
-    color: #99a9bf;
-}
-.el-textarea__inner::-moz-placeholder{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-textarea__inner:-ms-input-placeholder{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-textarea__inner::placeholder{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-textarea__inner:hover{
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-textarea__inner:focus{
     outline: none;
@@ -632,7 +619,7 @@
   --------------------------*/
 }
 .el-tag{
-    background-color: #8492a6;
+    background-color: rgb(131, 145, 165);
     display: inline-block;
     padding: 0 5px;
     height: 24px;
@@ -660,23 +647,23 @@
 }
 .el-tag .el-icon-close:hover{
     background-color: #fff;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
 }
 .el-tag--gray{
-    background-color: #e5e9f2;
-    border-color: #e5e9f2;
-    color: #475669;
+    background-color: rgb(228, 232, 241);
+    border-color: rgb(228, 232, 241);
+    color: rgb(72, 87, 106);
 }
 .el-tag--gray .el-tag__close:hover{
-    background-color: #475669;
+    background-color: rgb(72, 87, 106);
     color: #fff;
 }
 .el-tag--gray.is-hit{
-    border-color: #475669;
+    border-color: rgb(72, 87, 106);
 }
 .el-tag--primary{
-    background-color: rgba(32,159,255,0.10);
-    border-color: rgba(32,159,255,0.20);
+    background-color: rgba(32, 160, 255, 0.1);
+    border-color: rgba(32, 160, 255, 0.2);
     color: #20a0ff;
 }
 .el-tag--primary .el-tag__close:hover{
@@ -819,27 +806,27 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #475669;
-    height: 40px;
+    color: rgb(72, 87, 106);
+    height: 36px;
     line-height: 1.5;
     box-sizing: border-box;
     cursor: pointer;
 }
 .el-select-dropdown__item.hover{
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 .el-select-dropdown__item.selected{
     color: #fff;
     background-color: #20a0ff;
 }
 .el-select-dropdown__item.selected.hover{
-    background-color: #1D8CE0;
+    background-color: rgb(28, 141, 224);
 }
 .el-select-dropdown__item span{
     line-height: 1.5 !important;
 }
 .el-select-dropdown__item.is-disabled{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     cursor: not-allowed;
 }
 .el-select-dropdown__item.is-disabled:hover{
@@ -1099,17 +1086,17 @@
     position: relative;
 }
 .el-select:hover .el-input__inner{
-    border-color: #8492a6;
+    border-color: rgb(131, 145, 165);
 }
 .el-select .el-input__inner{
     cursor: pointer;
 }
 .el-select .el-input__inner:focus{
-    border-color: #2ea0ff;
+    border-color: #20a0ff;
 }
 .el-select .el-input{}
 .el-select .el-input .el-input__icon{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     font-size: 12px;
     transition: transform .3s;
     transform: translateY(-50%) rotateZ(180deg);
@@ -1126,10 +1113,10 @@
     text-align: center;
     transform: translateY(-50%) rotateZ(180deg);
     border-radius: 100%;
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
 }
 .el-select .el-input .el-input__icon.is-show-close:hover{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-select .el-input .el-input__icon.is-reverse{
     transform: translateY(-50%);
@@ -1139,7 +1126,10 @@
     cursor: not-allowed;
 }
 .el-select .el-input.is-disabled .el-input__inner:hover{
-    border-color: #D3DCE6;
+    border-color: rgb(209, 219, 229);
+}
+.el-select > .el-input{
+    display: block;
 }
 .el-select .el-tag__close{
     margin-top: -2px;
@@ -1173,18 +1163,18 @@
     top: 8px;
     z-index: 1000;
     right: 25px;
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     line-height: 18px;
     font-size: 12px;
 }
 .el-select__close:hover{
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 .el-select__tags{
     position: absolute;
     line-height: normal;
     white-space: normal;
-    z-index: 1000;
+    z-index: 1;
     top: 50%;
     transform: translateY(-50%);
 }
@@ -1292,7 +1282,7 @@
 .el-pagination{
     white-space: nowrap;
     padding: 2px 5px;
-    color: #475669;
+    color: rgb(72, 87, 106);
 }
 
 .el-pagination span, .el-pagination button{
@@ -1339,10 +1329,10 @@
     background: center center no-repeat;
     background-size: 16px;
     background-color: #fff;
-    border: 1px solid #D3DCE6;
+    border: 1px solid rgb(209, 219, 229);
     cursor: pointer;
     margin: 0;
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 
 .el-pagination .btn-prev .el-icon, .el-pagination .btn-next .el-icon{
@@ -1382,7 +1372,7 @@
 
 .el-pagination__sizes .el-input .el-input__inner {
     font-size: 13px;
-    border-color: #D3DCE6
+    border-color: rgb(209, 219, 229)
 }
 
 .el-pagination__sizes .el-input .el-input__inner:hover{
@@ -1402,7 +1392,7 @@
 }
 
 .el-pagination__editor{
-    border: 1px solid #D3DCE6;
+    border: 1px solid rgb(209, 219, 229);
     border-radius: 2px;
     line-height: 18px;
     padding: 4px 2px;
@@ -1438,7 +1428,7 @@
 
 .el-pager li{
     padding: 0 4px;
-    border: 1px solid #D3DCE6;
+    border: 1px solid rgb(209, 219, 229);
     border-right: 0;
     background: #fff;
     vertical-align: top;
@@ -1454,12 +1444,12 @@
 }
 
 .el-pager li:last-child{
-    border-right: 1px solid #D3DCE6;
+    border-right: 1px solid rgb(209, 219, 229);
 }
 
 .el-pager li.btn-quicknext, .el-pager li.btn-quickprev{
     line-height: 28px;
-    color: #99a9bf;
+    color: rgb(151, 168, 190);
 }
 
 .el-pager li.btn-quickprev:hover{
@@ -1558,12 +1548,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

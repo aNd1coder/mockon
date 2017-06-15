@@ -91,7 +91,7 @@
 .el-select-dropdown{
     position: absolute;
     z-index: 1001;
-    border: solid 1px #d3dce6;
+    border: solid 1px rgb(209, 219, 229);
     border-radius: 2px;
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04);
@@ -111,7 +111,7 @@
 }
 
 .el-select-dropdown.is-multiple .el-select-dropdown__item.selected.hover{
-    background-color: #e5e9f2;
+    background-color: rgb(228, 232, 241);
 }
 
 .el-select-dropdown.is-multiple .el-select-dropdown__item.selected::after{
@@ -134,7 +134,6 @@
 
 .el-select-dropdown__wrap{
     max-height: 274px;
-    width: 100%;
 }
 
 .el-select-dropdown__list{
@@ -216,12 +215,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

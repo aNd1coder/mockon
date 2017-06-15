@@ -1,8 +1,8 @@
-import { http } from 'vue'
+import Vue from 'vue'
 import * as types from './mutation-types'
 
 export async function fetchTables({ commit }, payload) {
-  let result = await http.get('table', { params: payload })
+  let result = await Vue.http.get('table', { params: payload })
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -16,9 +16,9 @@ export async function fetchTable({ commit }, payload) {
   let result
 
   if (payload.id) {
-    result = await http.get('table/' + payload.id)
+    result = await Vue.http.get('table/' + payload.id)
   } else {
-    result = await http.get('table', { params: { action: 'find', ...payload } })
+    result = await Vue.http.get('table', { params: { action: 'find', ...payload } })
   }
 
   if (result.body.code === 0) {
@@ -29,7 +29,7 @@ export async function fetchTable({ commit }, payload) {
 }
 
 export async function createTable({ commit }, payload) {
-  let result = await http.post('table', payload)
+  let result = await Vue.http.post('table', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -40,7 +40,7 @@ export async function createTable({ commit }, payload) {
 }
 
 export async function deleteTable({ commit }, payload) {
-  let result = await http.delete('table/' + payload.id)
+  let result = await Vue.http.delete('table/' + payload.id)
 
   if (result.body.code === 0) {
     commit(types.DELETE_TABLE, payload)
@@ -50,7 +50,7 @@ export async function deleteTable({ commit }, payload) {
 }
 
 export async function updateTable({ commit }, payload) {
-  let result = await http.put('table/' + payload.id, payload)
+  let result = await Vue.http.put('table/' + payload.id, payload)
 
   if (result.body.code === 0) {
     commit(types.UPDATE_TABLE, payload)

@@ -186,7 +186,6 @@
       border: 3px solid #eee;
       top: 19px;
       left: -6px;
-      border-radius: 50%;
       content: '';
       background-color: #cfcfcf;
     }

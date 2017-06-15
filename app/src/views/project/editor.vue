@@ -149,12 +149,6 @@
       padding-left: 0;
       margin-bottom: 0;
     }
-    .el-tabs__item.is-active {
-      background-color: transparent;
-    }
-    .el-tabs__active-bar {
-      height: 1px;
-    }
     .el-tab-pane {
       padding: 0;
     }

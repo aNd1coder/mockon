@@ -30,7 +30,7 @@ export function dateFormatter(value, format) {
   return moment(value).format(format || 'YYYY-MM-DD HH:mm:ss')
 }
 
-export function jsonFormat(body, fields) {
+export function jsonFormat(body, fields, jsonp) {
   let htmlBlock = ''
   let space = '  '
   let index = 0
@@ -96,6 +96,10 @@ export function jsonFormat(body, fields) {
     return /\[object (\w+)\]/g.exec(toString.call(value))[1].toLowerCase()
   }
 
+  function buildJSONP(char) {
+    return '<span class="hljs-jsonp">' + char + '</span>'
+  }
+
   function buildAttr(attr, level) {
     return padding(level) + '<span class="hljs-attr">"' + attr + '"</span>'
   }
@@ -135,7 +139,7 @@ export function jsonFormat(body, fields) {
   htmlBlock = _.trimEnd(htmlBlock, '\n')
   htmlBlock = _.trimEnd(htmlBlock, ',')
 
-  htmlBlock = '{\n' + htmlBlock + '\n}'
+  htmlBlock = (jsonp ? buildJSONP(jsonp + '(') : '') + '{\n' + htmlBlock + '\n}' + (jsonp ? buildJSONP(')') : '')
 
   return htmlBlock
 }
@@ -163,6 +167,37 @@ export function flattenObject(originObject) {
     }
   }
   return result
+}
+
+export function showNotify(ctx, result, successFn, errorFn) {
+  if (result.code === 0) {
+    ctx.$notify.success({
+      title: '提示',
+      message: result.message || '操作成功！',
+      duration: 3000
+    })
+
+    successFn && successFn(ctx)
+  } else {
+    ctx.$notify.error({
+      title: '提示',
+      message: result.message,
+      duration: 3000
+    })
+
+    errorFn && errorFn(ctx)
+  }
+}
+
+export function showConfirm(ctx, message, fn) {
+  ctx.$confirm(
+    message,
+    '提示',
+    { type: 'warning' }
+  ).then(async () => {
+    fn && fn(ctx)
+  }).catch(() => {
+  })
 }
 
 const languages = ["cpp", "xml", "bash", "coffeescript", "css", "markdown", "http", "java", "javascript", "json", "less", "makefile", "nginx", "php", "python", "scss", "sql", "stylus"]

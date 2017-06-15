@@ -1,4 +1,4 @@
-import { http } from 'vue'
+import Vue from 'vue'
 import * as types from './mutation-types'
 import {
   APPEND_API_RESPONSE_PARAM,
@@ -7,7 +7,7 @@ import {
 } from '../api/mutation-types'
 
 export async function fetchParams({ commit }, payload) {
-  let result = await http.get('param', { params: payload })
+  let result = await Vue.http.get('param', { params: payload })
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -21,20 +21,20 @@ export async function fetchParam({ commit }, payload) {
   let result
 
   if (payload.id) {
-    result = await http.get('param/' + payload.id)
+    result = await Vue.http.get('param/' + payload.id)
   } else {
-    result = await http.get('param', { params: { action: 'find', ...payload } })
+    result = await Vue.http.get('param', { params: { action: 'find', ...payload } })
   }
 
   if (result.body.code === 0) {
-    commit(types.FETCH_TABLE, result.body.data)
+    commit(types.FETCH_PARAM, result.body.data)
   }
 
   return result.body
 }
 
 export async function createParam({ commit }, payload) {
-  let result = await http.post('param', payload)
+  let result = await Vue.http.post('param', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -46,7 +46,7 @@ export async function createParam({ commit }, payload) {
 }
 
 export async function deleteParam({ commit }, payload) {
-  let result = await http.delete('param/' + payload.id)
+  let result = await Vue.http.delete('param/' + payload.id)
 
   if (result.body.code === 0) {
     commit(types.DELETE_PARAM, payload)
@@ -57,7 +57,7 @@ export async function deleteParam({ commit }, payload) {
 }
 
 export async function updateParam({ commit }, payload) {
-  let result = await http.put('param/' + payload.id, payload)
+  let result = await Vue.http.put('param/' + payload.id, payload)
   let data = result.body.data
 
   if (result.body.code === 0) {

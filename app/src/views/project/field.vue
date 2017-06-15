@@ -5,7 +5,7 @@
     </el-form-item>
     <el-form-item prop="type">
       <el-select v-model="field.type" placeholder="类型">
-        <el-option v-for="type in FIELD_TYPE" :label="type" :value="type"></el-option>
+        <el-option v-for="type in FIELD_TYPE" :key="type" :label="type" :value="type"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item prop="length">
@@ -15,12 +15,12 @@
       <el-input type="text" v-model="field.default_value" placeholder="默认值"></el-input>
     </el-form-item>
     <el-form-item prop="required">
-      <el-switch v-model="this.field.required" on-text="必选" off-text="可选"></el-switch>
+      <el-switch v-model="this.field.required" on-text="必需" off-text="可选"></el-switch>
     </el-form-item>
     <el-form-item prop="description">
       <el-input type="text" v-model="field.description" placeholder="描述"></el-input>
     </el-form-item>
-    <el-form-item v-if="project.owner.id === user.id">
+    <el-form-item>
       <el-button :plain="true" type="danger" size="small" @click="handleDelete(this.field. $index)">
         <i class="fa fa-trash-o"></i>删除
       </el-button>
@@ -35,6 +35,7 @@
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
+  import { showNotify, showConfirm } from '../../utils'
   import { FIELD_TYPE } from '../../config'
 
   export default {
@@ -62,7 +63,7 @@
       }
     },
     computed: mapGetters([
-      'user',
+      'session',
       'project',
       'fetchField',
       'createField',
@@ -76,19 +77,9 @@
     methods: {
       handleDelete() {
         if (this.field.id) {
-          this.$confirm(
-            '确定删除该字段?',
-            '提示',
-            { type: 'warning' }
-          ).then(async() => {
-            await this.deleteField(this.field)
-
-            this.$notify.success({
-              title: '提示',
-              message: '删除成功!',
-              duration: 3000
-            })
-          }).catch(() => {
+          showConfirm(this, '确定删除该字段?', async (ctx) => {
+            let result = await ctx.deleteField(ctx.field)
+            showNotify(ctx, result)
           })
         }
       },
@@ -110,19 +101,7 @@
 
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result)
           }
         })
       }

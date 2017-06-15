@@ -1,80 +1,49 @@
 <template>
-  <div v-loading.body="loading" element-loading-text="加载中">
-    <div class="page-header">
-      <h1 class="pull-left">错误码管理</h1>
-      <el-button class="pull-right" :plain="true" type="primary" @click="handleCreate">
-        <i class="fa fa-plus-circle"></i>新增错误码
-      </el-button>
-    </div>
-    <el-table v-if="errors && errors.length" :data="errors" stripe>
-      <el-table-column inline-template prop="user.avatar" label="创建者">
-        <el-user-block :user="row.user"></el-user-block>
-      </el-table-column>
-      <el-table-column prop="code" label="错误码"></el-table-column>
-      <el-table-column prop="module_id" label="所属模块" inline-template>
-        <div>
-        {{ belongTo(row) }}
-        </div>
-      </el-table-column>
-      <el-table-column prop="description" label="描述"></el-table-column>
-      <el-table-column v-if="project.owner.id === user.id" inline-template label="操作">
-        <div>
-          <el-button :plain="true" type="danger" size="small" @click="handleDelete(row)">
-            <i class="fa fa-trash-o"></i>删除
-          </el-button>
-          <el-button :plain="true" size="small" @click="handleUpdate(row)">
-            <i class="fa fa-pencil-square-o"></i>编辑
-          </el-button>
-        </div>
-      </el-table-column>
-    </el-table>
-    <el-nodata v-else></el-nodata>
-    <el-dialog :title="title" v-model="dialogVisible">
-      <el-form :model="error" :rules="rules" ref="error" @submit.native.prevent="handleSubmit">
-        <el-form-item label="错误码" prop="code">
-          <el-input type="text" v-model="error.code"></el-input>
-        </el-form-item>
-        <el-form-item label="错误信息" prop="description">
-          <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 2 }" v-model="error.description"></el-input>
-        </el-form-item>
-        <el-form-item prop="type">
-          <el-select v-model="error.module_id" placeholder="所属模块">
-            <el-option label="全局" value="0" :selected="error.module_id === 0"></el-option>
-            <el-option v-for="{ id, name } in modules" :label="name" :value="id"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-          <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存</el-button>
-        </el-form-item>
-      </el-form>
-    </el-dialog>
-  </div>
+  <el-form class="el-form-error" :model="error" :rules="rules" ref="error" :inline="true" @submit.native.prevent="handleSubmit">
+    <el-form-item prop="name">
+      <el-input type="text" v-model="error.name" placeholder="状态名称(英文)"></el-input>
+    </el-form-item>
+    <el-form-item prop="code">
+      <el-input type="text" v-model="error.code" placeholder="状态代码"></el-input>
+    </el-form-item>
+    <el-form-item class="el-form-item-description" prop="description">
+      <el-input type="text" v-model="error.description" placeholder="状态描述"></el-input>
+    </el-form-item>
+    <el-form-item prop="type">
+      <el-switch v-model="share" on-text="全局" off-text="私有"></el-switch>
+    </el-form-item>
+    <el-form-item class="el-form-button">
+      <el-button :disabled="!error.id" :plain="true" type="danger" size="small" @click="handleDelete()">删除</el-button>
+    </el-form-item>
+    <el-form-item>
+      <el-button :plain="true" :disabled="disabled" size="small" @click="handleSubmit">保存</el-button>
+    </el-form-item>
+  </el-form>
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
-  import ElUserBlock from '../../components/user-block.vue'
-  import ElNodata from '../../components/nodata.vue'
+  import { showNotify, showConfirm } from '../../utils'
 
   export default {
-    components: {
-      ElUserBlock,
-      ElNodata
+    name: 'el-error',
+    props: {
+      data: Object
     },
     data() {
       return {
-        title: '',
-        dialogVisible: false,
         loading: true,
         disabled: false,
+        share: false,
+        newError: {},
         error: {
           id: '',
-          type: 0,
+          name:'',
           code: '',
           description: ''
         },
         rules: {
           code: [
-            { required: true, message: '请输入错误码', trigger: 'blur' }
+            { required: true, message: '请输入状态码', trigger: 'blur' }
           ],
           description: [
             { required: true, message: '请输入描述', trigger: 'blur' }
@@ -82,62 +51,38 @@
         }
       }
     },
-    computed: mapGetters([
-      'user',
-      'project',
-      'modules',
-      'errors'
-    ]),
-    beforeRouteEnter(to, from, next) {
-      next(async(vm) => {
-        await vm.fetchModules({ project_id: vm.project.id })
-        await vm.fetchErrors({ project_id: vm.project.id })
-        vm.loading = false
-      })
+    computed: {
+      ...mapGetters([
+        'session',
+        'project',
+        'api'
+      ])
+    },
+    mounted() {
+      this.loading = false
+      this.newError = JSON.parse(JSON.stringify(this.error))
+
+      if (this.data && this.data.id) {
+        this.error = JSON.parse(JSON.stringify(this.data))
+        this.share = this.error.api_id === 0
+      }
     },
     methods: {
       ...mapActions([
-        'fetchModules',
-        'fetchErrors',
         'createError',
         'deleteError',
-        'updateError'
+        'updateError',
+        'appendApiError',
+        'deleteApiError',
       ]),
-      handleCreate() {
-        this.title = '新建错误码'
-
-        this.error = {
-          id: '',
-          type: 0,
-          code: '',
-          description: ''
-        }
-
-        this.dialogVisible = true
-      },
-      handleUpdate(row) {
-        this.title = '修改错误码'
-        this.dialogVisible = true
-        this.error = JSON.parse(JSON.stringify(row))
-      },
-      handleRemove(row){
-        this.$confirm(
-          '确定删除该错误码？',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteError(row)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {
+      handleDelete(){
+        showConfirm(this, '确定删除该状态码?', async (ctx) => {
+          let result = await ctx.deleteError(ctx.data)
+          showNotify(ctx, result)
         })
       },
       handleSubmit() {
-        this.$refs.error.validate(async(valid) => {
+        this.$refs.error.validate(async (valid) => {
           let result
 
           if (valid) {
@@ -145,41 +90,83 @@
 
             this.error.project_id = this.project.id
 
+            if (this.share) {
+              this.error.api_id = 0;
+            } else {
+              this.error.api_id = this.api.id
+            }
+
             if (this.error.id) {
               result = await this.updateError(this.error)
             } else {
               result = await this.createError(this.error)
             }
 
+            if (this.error.id) {
+              this.error = JSON.parse(JSON.stringify(this.error))
+            } else {
+              this.error = JSON.parse(JSON.stringify(this.newError))
+            }
+
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-
-              this.dialogVisible = false
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result)
           } else {
             return false
           }
         })
-      },
-      belongTo(row) {
-        let matched = this.modules.find(module => {
-          return module.id === row.module_id
-        })
-
-        return matched ? matched.name : '全局'
       }
     }
   }
 </script>
+<style lang="scss">
+  .el-form-error {
+    display: flex;
+    border-bottom: 1px solid #eeeeee;
+    padding: 0 !important;
+    margin-bottom: 0 !important;
+    background-color: transparent !important;
+
+    .el-form-item {
+      margin: 0;
+
+      &:nth-child(1) {
+        width: 25%;
+      }
+
+      &:nth-child(2) {
+        width: 15%;
+      }
+
+      &.is-error .el-input__inner {
+        border-color: #fff #fff #ff4949 #fff !important;
+      }
+    }
+
+    .el-form-item-description {
+      width: 70%;
+
+      .el-form-item__content {
+        display: block;
+      }
+    }
+
+    .el-form-required {
+      margin-left: 10px;
+    }
+
+    .el-form-button {
+      margin: 0 10px;
+    }
+
+    .el-input__inner {
+      padding: 3px 0;
+      border-color: #fff;
+      border-radius: 0;
+
+      &:hover, &:focus {
+        border-color: #fff #fff #20a0ff #fff !important;
+      }
+    }
+  }
+</style>

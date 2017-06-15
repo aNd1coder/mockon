@@ -93,6 +93,10 @@
     vertical-align: top;
 }
 
+.el-step:last-child .el-step__main{
+    padding-right: 0;
+}
+
 .el-step.is-vertical{}
 
 .el-step.is-vertical .el-step__head, .el-step.is-vertical .el-step__main{
@@ -363,12 +367,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

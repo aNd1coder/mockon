@@ -110,7 +110,7 @@
 }
 
 .el-notification .el-icon-information{
-    color: #50BFFF;
+    color: #50bfff;
 }
 
 .el-notification .el-icon-warning{
@@ -128,14 +128,15 @@
 .el-notification__title{
     font-weight: 400;
     font-size: 16px;
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
+    margin: 0;
 }
 
 .el-notification__content{
     font-size: 14px;
     line-height: 21px;
     margin: 10px 0 0 0;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
     text-align: justify;
 }
 
@@ -153,12 +154,12 @@
     right: 20px;
     position: absolute;
     cursor: pointer;
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     font-size: 14px;
 }
 
 .el-notification__closeBtn:hover{
-    color: #99A9BF;
+    color: rgb(151, 168, 190);
 }
 
 .el-notification-fade-enter {
@@ -242,12 +243,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

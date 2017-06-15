@@ -1,8 +1,8 @@
-import { http } from 'vue'
+import Vue from 'vue'
 import * as types from './mutation-types'
 
 export async function fetchLogs({ commit }, payload) {
-  let result = await http.get('log', { params: payload })
+  let result = await Vue.http.get('log', { params: payload })
   let data = result.body.data.data
 
   if (result.body.code === 0) {
@@ -20,9 +20,9 @@ export async function fetchLog({ commit }, payload) {
   let result
 
   if (payload.id) {
-    result = await http.get('log/' + payload.id)
+    result = await Vue.http.get('log/' + payload.id)
   } else {
-    result = await http.get('log', { params: { action: 'find', ...payload } })
+    result = await Vue.http.get('log', { params: { action: 'find', ...payload } })
   }
 
   if (result.body.code === 0) {
@@ -33,7 +33,7 @@ export async function fetchLog({ commit }, payload) {
 }
 
 export async function createLog({ commit }, payload) {
-  let result = await http.post('log', payload)
+  let result = await Vue.http.post('log', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -44,7 +44,7 @@ export async function createLog({ commit }, payload) {
 }
 
 export async function deleteLog({ commit }, payload) {
-  let result = await http.delete('log/' + payload.id)
+  let result = await Vue.http.delete('log/' + payload.id)
 
   if (result.body.code === 0) {
     commit(types.DELETE_LOG, payload)
@@ -54,7 +54,7 @@ export async function deleteLog({ commit }, payload) {
 }
 
 export async function updateLog({ commit }, payload) {
-  let result = await http.put('log/' + payload.id, payload)
+  let result = await Vue.http.put('log/' + payload.id, payload)
 
   if (result.body.code === 0) {
     commit(types.UPDATE_LOG, payload)

@@ -3,7 +3,9 @@
     <el-form-item prop="description">
       <el-input class="el-input-group-field" v-model="field.description" placeholder="请输字段描述">
         <template slot="prepend">
-          {{ name }}<el-switch v-model="share" on-text="共享" off-text="私有"></el-switch>
+          {{ name }}
+          <el-switch class="el-switch-share" v-model="share" on-text="共享" off-text="私有"></el-switch>
+          <el-switch class="el-switch-required" v-model="field.required" on-text="必需" off-text="可选"></el-switch>
         </template>
         <template slot="append">
           <el-button native-type="submit" type="primary" :plain="true">保存</el-button>
@@ -32,10 +34,13 @@
     top: 7px;
     right: 10px;
   }
+  .el-switch-required {
+    right: 80px;
+  }
 </style>
 <style lang="scss">
   .el-input-group-field .el-input-group__prepend {
-    width: 40%;
+    width: 50%;
   }
 </style>
 <script type="text/babel">
@@ -53,7 +58,8 @@
         share: false,
         field: {
           id: '',
-          description: ''
+          description: '',
+          required: true
         },
         rules: {
           description: [
@@ -68,6 +74,7 @@
         if (field.name === this.name) {
           this.field = JSON.parse(JSON.stringify(field))
           this.share = this.field.response_id === 0
+          this.field.required = !!this.field.required
         }
       })
     },
@@ -82,6 +89,7 @@
             this.field.name = this.name
             this.field.project_id = this.project.id
             this.field.response_id = this.share ? 0 : this.response.id
+            this.field.required = this.field.required ? 1 : 0
 
             if (this.field.id) {
               result = await this.updateField(this.field)

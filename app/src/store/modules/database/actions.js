@@ -1,8 +1,8 @@
-import { http } from 'vue'
+import Vue from 'vue'
 import * as types from './mutation-types'
 
 export async function fetchDatabases({ commit }, payload) {
-  let result = await http.get('database', { params: payload })
+  let result = await Vue.http.get('database', { params: payload })
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -16,9 +16,9 @@ export async function fetchDatabase({ commit }, payload) {
   let result
 
   if (payload.id) {
-    result = await http.get('database/' + payload.id)
+    result = await Vue.http.get('database/' + payload.id)
   } else {
-    result = await http.get('database', { params: { action: 'find', ...payload } })
+    result = await Vue.http.get('database', { params: { action: 'find', ...payload } })
   }
 
   if (result.body.code === 0) {
@@ -29,7 +29,7 @@ export async function fetchDatabase({ commit }, payload) {
 }
 
 export async function createDatabase({ commit }, payload) {
-  let result = await http.post('database', payload)
+  let result = await Vue.http.post('database', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -40,7 +40,7 @@ export async function createDatabase({ commit }, payload) {
 }
 
 export async function deleteDatabase({ commit }, payload) {
-  let result = await http.delete('database/' + payload.id)
+  let result = await Vue.http.delete('database/' + payload.id)
 
   if (result.body.code === 0) {
     commit(types.DELETE_DATABASE, payload)
@@ -50,7 +50,7 @@ export async function deleteDatabase({ commit }, payload) {
 }
 
 export async function updateDatabase({ commit }, payload) {
-  let result = await http.put('database/' + payload.id, payload)
+  let result = await Vue.http.put('database/' + payload.id, payload)
 
   if (result.body.code === 0) {
     commit(types.UPDATE_DATABASE, payload)

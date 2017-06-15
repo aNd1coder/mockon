@@ -89,7 +89,7 @@
   --------------------------*/
 }
 .el-checkbox{
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
     position: relative;
     cursor: pointer;
     display: inline-block;
@@ -112,7 +112,7 @@
 }
 .el-checkbox__input.is-indeterminate .el-checkbox__inner{
     background-color: #20a0ff;
-    border-color: #2e90fe;
+    border-color: rgb(1, 144, 254);
 }
 .el-checkbox__input.is-indeterminate .el-checkbox__inner::before{
     content: '';
@@ -132,33 +132,33 @@
 }
 .el-checkbox__input.is-checked .el-checkbox__inner{
     background-color: #20a0ff;
-    border-color: #2e90fe;
+    border-color: rgb(1, 144, 254);
 }
 .el-checkbox__input.is-checked .el-checkbox__inner::after{
     transform: rotate(45deg) scaleY(1);
 }
 .el-checkbox__input.is-disabled .el-checkbox__inner{
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
     cursor: not-allowed;
 }
 .el-checkbox__input.is-disabled .el-checkbox__inner::after{
     cursor: not-allowed;
-    border-color: #EFF2F7;
+    border-color: rgb(238, 241, 246);
 }
 .el-checkbox__input.is-disabled .el-checkbox__inner + .el-checkbox__label{
     cursor: not-allowed;
 }
 .el-checkbox__input.is-disabled.is-checked .el-checkbox__inner{
-    background-color: #D3DCE6;
-    border-color: #D3DCE6;
+    background-color: rgb(209, 219, 229);
+    border-color: rgb(209, 219, 229);
 }
 .el-checkbox__input.is-disabled.is-checked .el-checkbox__inner::after{
     border-color: #fff;
 }
 .el-checkbox__input.is-disabled.is-indeterminate .el-checkbox__inner{
-    background-color: #D3DCE6;
-    border-color: #D3DCE6;
+    background-color: rgb(209, 219, 229);
+    border-color: rgb(209, 219, 229);
 }
 .el-checkbox__input.is-disabled.is-indeterminate .el-checkbox__inner::before{
     border-color: #fff;
@@ -170,7 +170,7 @@
 .el-checkbox__inner{
     display: inline-block;
     position: relative;
-    border: 1px solid #C0CCDA;
+    border: 1px solid rgb(191, 203, 217);
     border-radius: 4px;
     box-sizing: border-box;
     width: 18px;
@@ -203,6 +203,7 @@
     outline: none;
     position: absolute;
     margin: 0;
+    visibility: hidden;
     left: -999px;
 }
 .el-checkbox__label{
@@ -299,7 +300,7 @@
   --------------------------*/
 }
 .el-tag{
-    background-color: #8492a6;
+    background-color: rgb(131, 145, 165);
     display: inline-block;
     padding: 0 5px;
     height: 24px;
@@ -327,23 +328,23 @@
 }
 .el-tag .el-icon-close:hover{
     background-color: #fff;
-    color: #8492a6;
+    color: rgb(131, 145, 165);
 }
 .el-tag--gray{
-    background-color: #e5e9f2;
-    border-color: #e5e9f2;
-    color: #475669;
+    background-color: rgb(228, 232, 241);
+    border-color: rgb(228, 232, 241);
+    color: rgb(72, 87, 106);
 }
 .el-tag--gray .el-tag__close:hover{
-    background-color: #475669;
+    background-color: rgb(72, 87, 106);
     color: #fff;
 }
 .el-tag--gray.is-hit{
-    border-color: #475669;
+    border-color: rgb(72, 87, 106);
 }
 .el-tag--primary{
-    background-color: rgba(32,159,255,0.10);
-    border-color: rgba(32,159,255,0.20);
+    background-color: rgba(32, 160, 255, 0.1);
+    border-color: rgba(32, 160, 255, 0.2);
     color: #20a0ff;
 }
 .el-tag--primary .el-tag__close:hover{
@@ -485,20 +486,12 @@
     width: 100%;
     max-width: 100%;
     background-color: #fff;
-    border: 1px solid #e0e6ed;
+    border: 1px solid rgb(223, 230, 236);
     font-size: 14px;
-    color: #1f2d3d;
+    color: rgb(31, 45, 61);
 }
 
-.el-table .el-tooltip{
-    display: block;
-}
-
-.el-table .el-tooltip__rel{
-    display: block;
-}
-
-.el-table .el-tooltip__rel .cell{
+.el-table .el-tooltip.cell{
     white-space: nowrap;
 }
 
@@ -524,7 +517,7 @@
 }
 
 .el-table th.is-leaf, .el-table td{
-    border-bottom: 1px solid #e0e6ed;
+    border-bottom: 1px solid rgb(223, 230, 236);
 }
 
 .el-table th.gutter, .el-table td.gutter{
@@ -545,7 +538,7 @@
     bottom: 0;
     width: 100%;
     height: 1px;
-    background-color: #e0e6ed;
+    background-color: rgb(223, 230, 236);
     z-index: 1;
 }
 
@@ -556,7 +549,7 @@
     right: 0;
     width: 1px;
     height: 100%;
-    background-color: #e0e6ed;
+    background-color: rgb(223, 230, 236);
     z-index: 1;
 }
 
@@ -566,7 +559,7 @@
 }
 
 .el-table th{
-    background-color: #EFF2F7;
+    background-color: rgb(238, 241, 246);
     text-align: left;
 }
 
@@ -750,11 +743,11 @@
 }
 
 .el-table--border th, .el-table--border td {
-    border-right: 1px solid #e0e6ed;
+    border-right: 1px solid rgb(223, 230, 236);
 }
 
 .el-table--border th{
-    border-bottom: 1px solid #e0e6ed;
+    border-bottom: 1px solid rgb(223, 230, 236);
 }
 
 .el-table__fixed, .el-table__fixed-right{
@@ -772,7 +765,7 @@
     bottom: 0;
     width: 100%;
     height: 1px;
-    background-color: #e0e6ed;
+    background-color: rgb(223, 230, 236);
     z-index: 4;
 }
 
@@ -780,8 +773,8 @@
     position: absolute;
     top: -1px;
     right: 0;
-    background-color: #EFF2F7;
-    border-bottom: 1px solid #e0e6ed;
+    background-color: rgb(238, 241, 246);
+    border-bottom: 1px solid rgb(223, 230, 236);
 }
 
 .el-table__fixed-right{
@@ -804,8 +797,8 @@
 }
 
 .el-table__fixed-header-wrapper thead div{
-    background-color: #EFF2F7;
-    color: #1f2d3d;
+    background-color: rgb(238, 241, 246);
+    color: rgb(31, 45, 61);
 }
 
 .el-table__fixed-body-wrapper{
@@ -829,8 +822,8 @@
 }
 
 .el-table__header-wrapper thead div{
-    background-color: #EFF2F7;
-    color: #1f2d3d;
+    background-color: rgb(238, 241, 246);
+    color: rgb(31, 45, 61);
 }
 
 .el-table__body-wrapper{
@@ -844,6 +837,7 @@
 
 .el-table--striped .el-table__body tr:nth-child(2n) td{
     background: #FAFAFA;
+    background-clip: padding-box;
 }
 
 .el-table--striped .el-table__body tr:nth-child(2n).current-row td{
@@ -864,7 +858,7 @@
     top: 0;
     bottom: 0;
     width: 0;
-    border-left: 1px solid #e0e6ed;
+    border-left: 1px solid rgb(223, 230, 236);
     z-index: 10;
 }
 
@@ -883,8 +877,9 @@
     transition: background-color .25s ease;
 }
 
-.el-table--enable-row-hover tr:hover > td {
+.el-table--enable-row-hover .el-table__body tr:hover > td {
     background-color: rgb(238, 241, 246);
+    background-clip: padding-box;
 }
 
 .el-table--fluid-height .el-table__fixed, .el-table--fluid-height .el-table__fixed-right {
@@ -964,12 +959,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

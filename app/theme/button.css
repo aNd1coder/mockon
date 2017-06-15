@@ -94,8 +94,8 @@
     white-space: nowrap;
     cursor: pointer;
     background: #fff;
-    border: 1px solid #C0CCDA;
-    color: #1F2D3D;
+    border: 1px solid rgb(191, 203, 217);
+    color: rgb(31, 45, 61);
     -webkit-appearance: none;
     text-align: center;
     box-sizing: border-box;
@@ -104,7 +104,7 @@
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select: none;
-    padding: 12px 15px;
+    padding: 10px 15px;
     font-size: 14px;
     border-radius: 4px;
 }
@@ -154,11 +154,11 @@
 .el-button.is-disabled{}
 
 .el-button.is-disabled, .el-button.is-disabled:hover, .el-button.is-disabled:focus{
-    color: #C0CCDA;
+    color: rgb(191, 203, 217);
     cursor: not-allowed;
     background-image: none;
-    background-color: #EFF2F7;
-    border-color: #D3DCE6;
+    background-color: rgb(238, 241, 246);
+    border-color: rgb(209, 219, 229);
 }
 
 .el-button.is-disabled.el-button--text{
@@ -220,8 +220,8 @@
 
 .el-button--primary.is-plain{
     background: #fff;
-    border: 1px solid #C0CCDA;
-    color: #1F2D3D;
+    border: 1px solid rgb(191, 203, 217);
+    color: rgb(31, 45, 61);
 }
 
 .el-button--primary.is-plain:hover, .el-button--primary.is-plain:focus{
@@ -264,8 +264,8 @@
 
 .el-button--success.is-plain{
     background: #fff;
-    border: 1px solid #C0CCDA;
-    color: #1F2D3D;
+    border: 1px solid rgb(191, 203, 217);
+    color: rgb(31, 45, 61);
 }
 
 .el-button--success.is-plain:hover, .el-button--success.is-plain:focus{
@@ -308,8 +308,8 @@
 
 .el-button--warning.is-plain{
     background: #fff;
-    border: 1px solid #C0CCDA;
-    color: #1F2D3D;
+    border: 1px solid rgb(191, 203, 217);
+    color: rgb(31, 45, 61);
 }
 
 .el-button--warning.is-plain:hover, .el-button--warning.is-plain:focus{
@@ -352,8 +352,8 @@
 
 .el-button--danger.is-plain{
     background: #fff;
-    border: 1px solid #C0CCDA;
-    color: #1F2D3D;
+    border: 1px solid rgb(191, 203, 217);
+    color: rgb(31, 45, 61);
 }
 
 .el-button--danger.is-plain:hover, .el-button--danger.is-plain:focus{
@@ -371,8 +371,8 @@
 
 .el-button--info{
     color: #fff;
-    background-color: #50BFFF;
-    border-color: #50BFFF;
+    background-color: #50bfff;
+    border-color: #50bfff;
 }
 
 .el-button--info:hover, .el-button--info:focus{
@@ -396,14 +396,14 @@
 
 .el-button--info.is-plain{
     background: #fff;
-    border: 1px solid #C0CCDA;
-    color: #1F2D3D;
+    border: 1px solid rgb(191, 203, 217);
+    color: rgb(31, 45, 61);
 }
 
 .el-button--info.is-plain:hover, .el-button--info.is-plain:focus{
     background: #fff;
-    border-color: #50BFFF;
-    color: #50BFFF;
+    border-color: #50bfff;
+    color: #50bfff;
 }
 
 .el-button--info.is-plain:active{
@@ -643,12 +643,18 @@
   --------------------------*/
     /* Steps
   --------------------------*/
-    /* Steps
+    /* Menu
   --------------------------*/
     /* Rate
   --------------------------*/
     /* DatePicker
   --------------------------*/
     /* Loading
+  --------------------------*/
+    /* Scrollbar
+  --------------------------*/
+    /* Carousel
+  --------------------------*/
+    /* Collapse
   --------------------------*/
 }

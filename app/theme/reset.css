@@ -582,7 +582,7 @@ a:active {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #1f2d3d;
+  color: rgb(31, 45, 61);
   font-weight: inherit
 }
 
@@ -629,7 +629,13 @@ sup, sub {
 small {
   font-size: 12px;
 }
-:root {
+
+hr {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 0;
+  border-top: 1px solid #eeeeee;
+}:root {
   /* Transition
   -------------------------- */
   /* Colors
@@ -702,12 +708,18 @@ small {
   --------------------------*/
   /* Steps
   --------------------------*/
-  /* Steps
+  /* Menu
   --------------------------*/
   /* Rate
   --------------------------*/
   /* DatePicker
   --------------------------*/
   /* Loading
+  --------------------------*/
+  /* Scrollbar
+  --------------------------*/
+  /* Carousel
+  --------------------------*/
+  /* Collapse
   --------------------------*/
 }

@@ -7,6 +7,7 @@ import { SESSION_SIGNOUT } from '../store/modules/user/mutation-types'
 import Index from '../views/index.vue'
 import Signin from '../views/signin.vue'
 import Signup from '../views/signup.vue'
+import Password from '../views/password.vue'
 import Active from '../views/active.vue'
 import NotFound from '../views/404.vue'
 
@@ -42,12 +43,17 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    component: Index
+    component: ProjectIndex
   },
   {
     path: '/signin',
     name: 'signin',
     component: Signin
+  },
+  {
+    path: '/password',
+    name: 'password',
+    component: Password
   },
   {
     path: '/signup',
@@ -59,7 +65,7 @@ const routes = [
     name: 'signout',
     beforeEnter(to, from, next) {
       store.commit(SESSION_SIGNOUT)
-      next('/')
+      next('/signin')
     }
   },
   {
@@ -217,13 +223,13 @@ const routes = [
   }
 ]
 
-const router = new VueRouter({
+const Router = new VueRouter({
   mode: 'history',
   linkActiveClass: 'active',
   routes
 })
 
-router.beforeEach((to, from, next) => {
+Router.beforeEach((to, from, next) => {
   if (to.matched.some(record => record.meta.requireAuth)) {
     if (store.getters.signedIn) {
       next()
@@ -240,4 +246,4 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-export default router
+export default Router

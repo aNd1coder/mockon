@@ -2,10 +2,10 @@
   <el-row type="flex">
     <el-col :span="8" :offset="8">
       <el-form :model="user" :rules="rules" ref="user" @submit.native.prevent="handleSubmit" class="el-form-block">
-        <el-form-item label="邮  箱" prop="email">
+        <el-form-item label="邮箱" prop="email">
           <el-input type="text" v-model="user.email"></el-input>
         </el-form-item>
-        <el-form-item label="密  码" prop="password">
+        <el-form-item label="密码" prop="password">
           <el-input type="password" v-model="user.password"></el-input>
         </el-form-item>
         <el-form-item>

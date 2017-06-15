@@ -2,10 +2,12 @@
 
 let userInfo = {}
 let logModelInstance
+let projectModelInstance
+let memberModelInstance
 
 export default class extends think.controller.rest {
   baseUrl = process.env.NODE_ENV === 'production'
-    ? 'http://mockon.time33.com'
+    ? 'http://mockon.jd.com'
     : 'http://127.0.0.1:8088'
 
   async __before() {
@@ -31,7 +33,6 @@ export default class extends think.controller.rest {
       }
 
       userInfo = result.userInfo
-      logModelInstance = this.model('log')
 
       token = await tokenServiceInstance.create({ userInfo })
 
@@ -47,13 +48,36 @@ export default class extends think.controller.rest {
     return token
   }
 
-  async createLogger({ title = '', description = '', user_id, project_id = 0 }) {
-    await logModelInstance.add({
-      title,
+  async createLogger({ description = '', before_data, after_data, project_id = 0, user_id }) {
+    user_id = user_id || userInfo.id
+
+    logModelInstance = this.model('log')
+
+    return await logModelInstance.add({
       description,
+      before_data,
+      after_data,
       project_id,
-      user_id: user_id || userInfo.id
+      user_id
     })
+  }
+
+  async ownerOf(project) {
+    if (typeof project === 'number') {
+      projectModelInstance = this.model('project')
+      project = await projectModelInstance.where({ id: project }).find()
+    }
+
+    return userInfo.id === project.user_id
+  }
+
+  async memberOf(project_id) {
+    let members
+
+    memberModelInstance = this.model('member')
+    members = await memberModelInstance.where({ project_id: project_id, user_id: userInfo.id }).select()
+
+    return members.length > 0
   }
 
   userInfo() {

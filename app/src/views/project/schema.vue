@@ -19,7 +19,7 @@
       </el-table-column>
       <el-table-column sortable :formatter="formatter" prop="created_at" width="170" label="添加时间"></el-table-column>
       <el-table-column sortable :formatter="formatter" prop="modified_at" width="170" label="最后更新"></el-table-column>
-      <el-table-column v-if="project.owner.id === user.id" width="165" fixed="right" inline-template label="操作">
+      <el-table-column width="165" fixed="right" inline-template label="操作">
         <div>
           <el-button :plain="true" type="danger" size="small" @click="handleDelete(row)">
             <i class="fa fa-trash-o"></i>删除
@@ -41,12 +41,12 @@
         </el-form-item>DATA_SOURCE
         <el-form-item prop="datasource">
           <el-select v-model="database.datasource" placeholder="数据源类型">
-            <el-option v-for="source in DATA_SOURCE" :label="source" :value="source"></el-option>
+            <el-option v-for="source in DATA_SOURCE" :key="source" :label="source" :value="source"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item prop="status">
           <el-select v-model="database.status" placeholder="状态">
-            <el-option v-for="status in statusMap" :label="status.text" :value="status.value"></el-option>
+            <el-option v-for="status in statusMap" :key="status.value" :label="status.text" :value="status.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -61,7 +61,7 @@
   import ElUserBlock from '../../components/user-block.vue'
   import ElNodata from '../../components/nodata.vue'
   import { DATA_SOURCE } from '../../config'
-  import { dateFormatter } from '../../utils'
+  import { dateFormatter, showNotify, showConfirm } from '../../utils'
 
   export default {
     components: {
@@ -97,7 +97,7 @@
       }
     },
     computed: mapGetters([
-      'user',
+      'session',
       'project',
       'databases'
     ]),
@@ -126,19 +126,10 @@
         this.database = JSON.parse(JSON.stringify(row))
       },
       handleDelete(row) {
-        this.$confirm(
-          '确定删除该数据库?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteDatabase(row)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {})
+        showConfirm(this, '确定删除该数据库?', async (ctx) => {
+          let result = await ctx.deleteDatabase(row)
+          showNotify(ctx, result)
+        })
       },
       handleSubmit() {
         this.$refs.database.validate(async(valid) => {
@@ -162,21 +153,9 @@
 
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-
-              this.dialogVisible = false
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result, ctx => {
+              ctx.dialogVisible = false
+            })
           } else {
             return false
           }

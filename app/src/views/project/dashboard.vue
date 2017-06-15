@@ -12,11 +12,8 @@
           <ul class="links">
             <li class="link">
               <router-link :to="{ name: 'project-member', params: { code: project.code } }">
-                <i class="fa fa-user-o"></i>成员({{ project.members.length + 1 }})
+                <i class="fa fa-user-o"></i>成员({{ project.members.length }})
               </router-link>
-            </li>
-            <li class="link">
-              <i class="fa fa-heart-o"></i>收藏(10)
             </li>
             <li class="link"> /
               <router-link :to="{ name: 'user', params: { username: project.owner.username } }">
@@ -29,34 +26,41 @@
       </div>
       <el-tabs type="card" @tab-click="handleClick">
         <el-tab-pane label="动态">
-          <ul v-if="logs.length" class="el-timeline">
-            <li v-for="log in logs" class="el-timeline__item">
-              <el-user-block :user="log.user" :size="50" :nameVisible="false"></el-user-block>
-              <div class="content">
-                <router-link :to="{ name: 'user', params: { username: log.user.username } }">
-                  {{ log.user.username }}
-                </router-link>
-                于 {{ log.created_at | dateformat }}
-                <div class="description">{{ log.title }}</div>
-              </div>
-            </li>
-            <li v-if="more" class="el-timeline__more">
-              <span v-if="done"><i class="fa fa-frown-o"></i>没有更多数据了</span>
-              <a v-else href="javascript:;" @click="handleTimeline">
-                <i class="fa fa-chevron-circle-down"></i>查看更多动态
-              </a>
-            </li>
-          </ul>
-          <ul v-if="project.members.length" class="project-members">
-            <li>
-              <router-link :to="{ name: 'project-member', params: { code: project.code } }">
-                <h4>成员<i class="fa fa-angle-right pull-right"></i></h4>
-              </router-link>
-            </li>
-            <li v-for="member in project.members" class="member">
-              <el-user-block :user="member" :size="50" :nameVisible="false"></el-user-block>
-            </li>
-          </ul>
+          <el-row type="flex">
+            <el-col :span="18">
+              <ul v-if="logs.length" class="el-timeline">
+                <li v-for="log in logs" class="el-timeline__item">
+                  <el-user-block :user="log.user" :size="50" :nameVisible="false"></el-user-block>
+                  <div class="content">
+                    <router-link :to="{ name: 'user', params: { username: log.user.username } }">
+                      {{ log.user | displayName }}
+                    </router-link>
+                    于 {{ log.created_at | dateformat }}
+                    <div class="description">{{ log.description }}</div>
+                  </div>
+                </li>
+                <li v-if="more" class="el-timeline__more">
+                  <span v-if="done"><i class="fa fa-frown-o"></i>没有更多数据了</span>
+                  <a v-else href="javascript:;" @click="handleTimeline">
+                    <i class="fa fa-chevron-circle-down"></i>查看更多动态
+                  </a>
+                </li>
+              </ul>
+              <el-nodata v-else></el-nodata>
+            </el-col>
+            <el-col :span="6">
+              <ul v-if="project.members.length" class="project-members">
+                <li>
+                  <router-link :to="{ name: 'project-member', params: { code: project.code } }">
+                    <h4>成员<i class="fa fa-angle-right pull-right"></i></h4>
+                  </router-link>
+                </li>
+                <li v-for="member in project.members" class="member">
+                  <el-user-block :user="member" :size="50" :nameVisible="false"></el-user-block>
+                </li>
+              </ul>
+            </el-col>
+          </el-row>
         </el-tab-pane>
       </el-tabs>
     </el-col>
@@ -65,11 +69,13 @@
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
   import ElUserBlock from '../../components/user-block.vue'
+  import ElNodata from '../../components/nodata.vue'
   import { marked } from '../../utils'
 
   export default{
     components: {
-      ElUserBlock
+      ElUserBlock,
+      ElNodata
     },
     data() {
       return {
@@ -131,6 +137,7 @@
       font-size: 40px;
       color: #20a0ff;
       border-radius: 3px;
+      background-color: #fff;
     }
     .meta {
       position: relative;
@@ -145,7 +152,7 @@
         width: 1px;
         height: 60px;
         content: '';
-        background-color: #eee;
+        background-color: #e5e5e5;
       }
     }
     .name {
@@ -154,12 +161,13 @@
       .el-tag {
         margin-left: 10px;
         vertical-align: 4px;
+        font-weight: normal;
       }
     }
     .description {
       margin: 10px 0;
       padding-left: 10px;
-      border-left: 5px solid #e0e0e0;
+      border-left: 5px solid #e5e5e5;
       font-size: 14px;
       font-weight: 400;
       color: #666;
@@ -192,7 +200,7 @@
     display: block;
   }
   .el-timeline {
-    border-left: 1px solid #e0e0e0;
+    border-left: 1px solid #e5e5e5;
   }
   .el-timeline__item {
     position: relative;
@@ -219,7 +227,7 @@
       position: absolute;
       width: 6px;
       height: 6px;
-      border: 3px solid #eee;
+      border: 3px solid #f3f3f3;
       top: 19px;
       left: -6px;
       border-radius: 50%;
@@ -249,14 +257,11 @@
     }
   }
   .project-members {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 262px;
     padding: 10px;
     font-size: 14px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e5e5e5;
     border-radius: 3px;
+    overflow: hidden;
 
     li:first-child {
       overflow: hidden;
@@ -271,12 +276,9 @@
       }
     }
 
-    .el-user-block {
-      margin: 5px;
-    }
-
     .member {
       float: left;
+      margin-right: 5px;
     }
   }
 </style>

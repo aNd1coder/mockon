@@ -1,13 +1,14 @@
 <template>
-  <el-row v-if="project && project.id">
-    <ul class="col-sidebar">
-      <li v-for="(menu, index) in menus">
-        <router-link :to="{ name: menu.name, params: { code: project.code } }">
+  <el-row v-if="project && project.id" :class="collapse ? ' open': ''">
+    <div class="col-sidebar">
+      <div v-for="(menu, index) in menus">
+        <router-link :to="{ name: menu.name, params: { code: project.code } }" :title="menu.title">
           <i :class="'fa fa-'+ menu.icon"></i>
-          {{ menu.title }}
+          <span class="title">{{ menu.title }}</span>
         </router-link>
-      </li>
-    </ul>
+      </div>
+      <i class="fa icon-collapse" @click="collapse = !collapse" :title="collapse ? '展开':'折叠'"></i>
+    </div>
     <div class="col-main">
       <transition>
         <keep-alive>
@@ -43,18 +44,19 @@
            title:'主题风格',
            name: 'project-theme',
            icon: 'picture-o'
+           },
+           {
+           title: '错误码',
+           name: 'project-error',
+           icon: 'times-circle-o'
            },*/
-          {
-            title: '错误码',
-            name: 'project-error',
-            icon: 'times-circle-o'
-          },
           {
             title: '项目设置',
             name: 'project-setting',
             icon: 'sliders'
           },
         ],
+        collapse: false
       }
     },
     computed: mapGetters(['project']),
@@ -95,6 +97,33 @@
       z-index: 5;
     }
 
+    .icon-collapse {
+      position: absolute;
+      top: 50%;
+      right: 0;
+      width: 15px;
+      height: 40px;
+      line-height: 40px;
+      border: 1px solid #d3dce6;
+      border-right: none;
+      margin-right: 0;
+      text-align: center;
+      transform: translateY(-50%);
+      color: #d3dce6;
+      background-color: #fff;
+      box-shadow: -1px 0 5px rgba(0,0,0,.1);
+      z-index: 6;
+
+      &:before {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        content: "\f100";
+        cursor: pointer;
+      }
+    }
+
     a {
       position: relative;
       display: block;
@@ -128,5 +157,24 @@
   }
   .col-main {
     margin-left: 220px;
+  }
+  .open {
+    .col-sidebar {
+      width: 40px;
+
+      a {
+        padding-left: 10px;
+      }
+
+      .title {
+        display: none;
+      }
+      .icon-collapse:before {
+        content: "\f101";
+      }
+    }
+    .col-main {
+      margin-left: 40px;
+    }
   }
 </style>

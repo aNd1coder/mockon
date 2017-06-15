@@ -1,5 +1,5 @@
 <template>
-  <el-tag :type="type">{{ method }}</el-tag>
+  <el-tag :type="type">{{ method.replace('DELETE', 'DEL') }}</el-tag>
 </template>
 <script type="text/babel">
   export default{
@@ -29,6 +29,11 @@
 </script>
 <style lang="scss" scoped>
   .el-tag {
+    width: 30px;
+    padding: 0;
+    margin-right: 5px;
+    border: none;
+    background-color: transparent;
     font-weight: 700;
   }
 </style>

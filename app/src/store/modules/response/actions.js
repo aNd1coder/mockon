@@ -1,4 +1,4 @@
-import { http } from 'vue'
+import Vue from 'vue'
 import * as types from './mutation-types'
 import {
   APPEND_API_RESPONSE,
@@ -7,7 +7,7 @@ import {
 } from '../api/mutation-types'
 
 export async function fetchResponses({ commit }, payload) {
-  let result = await http.get('response', { params: payload })
+  let result = await Vue.http.get('response', { params: payload })
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -21,9 +21,9 @@ export async function fetchResponse({ commit }, payload) {
   let result
 
   if (payload.id) {
-    result = await http.get('response/' + payload.id)
+    result = await Vue.http.get('response/' + payload.id)
   } else {
-    result = await http.get('response', { params: { action: 'find', ...payload } })
+    result = await Vue.http.get('response', { params: { action: 'find', ...payload } })
   }
 
   if (result.body.code === 0) {
@@ -34,7 +34,7 @@ export async function fetchResponse({ commit }, payload) {
 }
 
 export async function createResponse({ commit }, payload) {
-  let result = await http.post('response', payload)
+  let result = await Vue.http.post('response', payload)
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -45,8 +45,18 @@ export async function createResponse({ commit }, payload) {
   return result.body
 }
 
+export async function bindBackup(store, payload) {
+  let result = await Vue.http.post('response', payload, { params: { action: 'bindbackup' } })
+  return result.body
+}
+
+export async function unBindBackup(store, payload) {
+  let result = await Vue.http.post('response', payload, { params: { action: 'unbindbackup' } })
+  return result.body
+}
+
 export async function duplicateResponse({ commit }, payload) {
-  let result = await http.post('response', payload, { params: { action: 'duplicate' } })
+  let result = await Vue.http.post('response', payload, { params: { action: 'duplicate' } })
   let data = result.body.data
 
   if (result.body.code === 0) {
@@ -60,7 +70,7 @@ export async function duplicateResponse({ commit }, payload) {
 }
 
 export async function deleteResponse({ commit }, payload) {
-  let result = await http.delete('response/' + payload.id)
+  let result = await Vue.http.delete('response/' + payload.id)
 
   if (result.body.code === 0) {
     commit(types.DELETE_RESPONSE, payload)
@@ -71,7 +81,7 @@ export async function deleteResponse({ commit }, payload) {
 }
 
 export async function updateResponse({ commit }, payload) {
-  let result = await http.put('response/' + payload.id, payload)
+  let result = await Vue.http.put('response/' + payload.id, payload)
 
   if (result.body.code === 0) {
     commit(types.UPDATE_RESPONSE, payload)

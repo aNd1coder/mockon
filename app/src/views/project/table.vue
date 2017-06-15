@@ -18,7 +18,7 @@
       </el-table-column>
       <el-table-column sortable :formatter="formatter" prop="created_at" width="170" label="添加时间"></el-table-column>
       <el-table-column sortable :formatter="formatter" prop="modified_at" width="170" label="最后更新"></el-table-column>
-      <el-table-column v-if="project.owner.id === user.id" fixed="right" inline-template label="操作">
+      <el-table-column fixed="right" inline-template label="操作">
         <div>
           <el-button :plain="true" type="danger" size="small" @click="handleDelete(row)">
             <i class="fa fa-trash-o"></i>删除
@@ -40,7 +40,7 @@
         </el-form-item>
         <el-form-item prop="status">
           <el-select v-model="table.status" placeholder="状态">
-            <el-option v-for="status in statusMap" :label="status.text" :value="status.value"></el-option>
+            <el-option v-for="status in statusMap" :key="status.value" :label="status.text" :value="status.value"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -54,7 +54,7 @@
   import { mapGetters, mapActions } from 'vuex'
   import ElUserBlock from '../../components/user-block.vue'
   import ElNodata from '../../components/nodata.vue'
-  import { dateFormatter } from '../../utils'
+  import { dateFormatter, showNotify, showConfirm } from '../../utils'
 
   export default {
     components: {
@@ -89,12 +89,12 @@
       }
     },
     computed: mapGetters([
-      'user',
+      'session',
       'project',
       'databases'
     ]),
     watch: {
-      '$route': 'loadTables'
+      $route: 'loadTables'
     },
     beforeRouteEnter(to, from, next) {
       next(async(vm) => {
@@ -125,19 +125,9 @@
         this.table = JSON.parse(JSON.stringify(row))
       },
       handleDelete(row) {
-        this.$confirm(
-          '确定删除该数据表?',
-          '提示',
-          { type: 'warning' }
-        ).then(async() => {
-          await this.deleteTable(row)
-
-          this.$notify.success({
-            title: '提示',
-            message: '删除成功!',
-            duration: 3000
-          })
-        }).catch(() => {
+        showConfirm(this, '确定删除该数据表?', async (ctx) => {
+          let result = await ctx.deleteTable(row)
+          showNotify(ctx, result)
         })
       },
       handleSubmit() {
@@ -161,21 +151,7 @@
 
             this.disabled = false
 
-            if (result.code === 0) {
-              this.$notify.success({
-                title: '提示',
-                message: '保存成功！',
-                duration: 3000
-              })
-
-              this.dialogVisible = false
-            } else {
-              this.$notify.error({
-                title: '提示',
-                message: result.message,
-                duration: 3000
-              })
-            }
+            showNotify(this, result)
           } else {
             return false
           }
