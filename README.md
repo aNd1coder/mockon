@@ -20,8 +20,8 @@
 ![architecture2](screenshots/architecture-2.png)
 
 ### Screenshots
-![screenshots1](screenshots/1.png)
-![screenshots2](screenshots/2.png)
+![screenshots1](screenshots/2.png)
+![screenshots2](screenshots/1.png)
 ![screenshots3](screenshots/3.png)
 ![screenshots4](screenshots/4.png)
 ![screenshots5](screenshots/5.png)
