@@ -24,7 +24,7 @@
 ![screenshots2](screenshots/2.png)
 ![screenshots3](screenshots/3.png)
 ![screenshots4](screenshots/4.png)
-![screenshots5](screenshots/6.png)
+![screenshots5](screenshots/5.png)
 ![screenshots6](screenshots/6.png)
 ![screenshots7](screenshots/7.png)
 ![screenshots8](screenshots/8.png)
