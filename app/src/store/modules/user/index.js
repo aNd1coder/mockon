@@ -19,12 +19,18 @@ const mutations = {
   [types.FETCH_USER](state, payload) {
     state.current = payload
   },
+  [types.UPDATE_USER](state, payload) {
+    localStorage.setItem('userInfo', JSON.stringify(payload))
+    state.current = payload
+    state.session = payload
+  },
   [types.SESSION_SIGNIN](state, payload) {
     if (payload.token) {
       localStorage.setItem('token', payload.token)
       state.token = payload.token
       delete  payload.token
     }
+
     localStorage.setItem('userInfo', JSON.stringify(payload))
     state.current = payload
     state.session = payload

@@ -8,12 +8,7 @@ export default class extends Base {
     let data
     let params = this.get()
     let action = params.action
-    let user = this.userInfo()
     let where = {}
-
-    if (user) {
-      where = { user_id: user.id }
-    }
 
     delete params.action
 
@@ -37,7 +32,8 @@ export default class extends Base {
   }
 
   async postAction() {
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
     let params = this.get()
     let action = params.action || ''
@@ -78,12 +74,12 @@ export default class extends Base {
 
     data.user_id = user.id
 
-    data.id = await this.modelInstance.add(data)
+    data.id = await model.add(data)
 
     if (duplicate) {
       let paramModelInstance = this.model('param')
 
-      params.forEach(param => {
+      params.forEach(async (param) => {
         if (param.id) {
           delete param.id
           delete param.created_at
@@ -92,14 +88,13 @@ export default class extends Base {
           param.response_id = data.id
           param.user_id = user.id
 
-          paramModelInstance.add(param)
+          await paramModelInstance.add(param)
         }
       })
     }
 
     if (data.id) {
-      let projectModelInstance = this.model('project')
-      let project = await projectModelInstance.where({ id: data.project_id }).find()
+      let project = await this.model('project').setRelation(false).db(model.db()).where({ id: data.project_id }).find()
 
       await this.createLogger({
         description: `添加了项目【${project.name}】响应【${data.description}】`,
@@ -110,31 +105,28 @@ export default class extends Base {
     return this.success(data)
   }
 
-  async deleteAction() {
+  async deleteAction(self) {
     if (!this.id) {
       return this.fail('params error')
     }
 
-    let pk = await this.modelInstance.getPk()
-    let response = await this.modelInstance.where({ [pk]: this.id }).find()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
+    let response = await model.where({ [pk]: this.id }).find()
 
     if (!await this.memberOf(response.project_id)) {
       return this.fail('NOT_MEMBER')
     }
 
-    let rows = await this.modelInstance.transaction(async () => {
-      let paramModelInstance = this.model('param')
-      let fieldModelInstance = this.model('field')
+    let rows = await model.transaction(async () => {
+      await self.model('param').where({ response_id: this.id }).delete()
+      await self.model('field').where({ response_id: this.id }).delete()
 
-      paramModelInstance.where({ response_id: this.id }).delete()
-      fieldModelInstance.where({ response_id: this.id }).delete()
-
-      return await this.modelInstance.where({ [pk]: this.id }).delete()
+      return await model.where({ [pk]: this.id }).delete()
     })
 
     if (rows > 0) {
-      let projectModelInstance = this.model('project')
-      let project = await projectModelInstance.where({ id: response.project_id }).find()
+      let project = await this.model('project').setRelation(false).db(model.db()).where({ id: response.project_id }).find()
 
       await this.createLogger({
         description: `删除了项目【${project.name}】响应【${response.description}】及关联数据`,
@@ -150,7 +142,8 @@ export default class extends Base {
       return this.fail('params error')
     }
 
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
 
     if (!await this.memberOf(data.project_id)) {
@@ -166,11 +159,10 @@ export default class extends Base {
       return this.fail('data is empty')
     }
 
-    let rows = await this.modelInstance.where({ [pk]: this.id }).update(data)
+    let rows = await model.where({ [pk]: this.id }).update(data)
 
     if (rows > 0) {
-      let projectModelInstance = this.model('project')
-      let project = await projectModelInstance.where({ id: data.project_id }).find()
+      let project = await this.model('project').setRelation(false).db(model.db()).where({ id: data.project_id }).find()
 
       await this.createLogger({
         description: `更新了项目【${project.name}】响应【${data.description}】信息`,

@@ -12,7 +12,6 @@
           <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">登录</el-button>
           <div class="el-form-help">
             <router-link class="pull-left" :to="{ name: 'signup' }">立即注册</router-link>
-            <router-link class="pull-right" :to="{ name: 'password' }">忘记密码?</router-link>
           </div>
         </el-form-item>
       </el-form>
@@ -28,13 +27,13 @@
       return {
         disabled: false,
         user: {
-          email: 'and1coder@gmail.com',
-          password: '123456'
+          email: '',
+          password: ''
         },
         rules: {
           email: [
             { required: true, message: '请输入邮箱地址', trigger: 'blur' },
-            { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur,change' }
+            { type: 'email', message: '邮箱地址格式不正确', trigger: 'blur,change' }
           ],
           password: [
             { required: true, message: '请输入密码', trigger: 'blur' }

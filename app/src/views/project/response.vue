@@ -17,6 +17,7 @@
         <el-param :response="response && response.id ? response : {}"></el-param>
       </el-form-item>
       <el-form-item class="el-form-mockjs" prop="is_mockjs">
+        <template v-if="response.id"><a class="el-tag el-tag--gray" :href="mockUrl" target="_blank">{{ mockUrl }}</a></template>
         <el-switch v-model="response.is_mockjs" :width="80" on-text="Mockjs" off-text="Normal"></el-switch>
       </el-form-item>
       <el-form-item label="响应内容">
@@ -56,8 +57,8 @@
   import jsonSchemaGenerator from 'json-schema-generator'
   import Mockjs from 'mockjs'
   import { mapGetters, mapActions } from 'vuex'
-  import { FORM_ENCTYPE, RESPONSE_TYPE, BACKUP_API } from '../../config'
-  import { flattenObject, showNotify } from '../../utils'
+  import { FORM_ENCTYPE, RESPONSE_TYPE, BACKUP_API, MOCK_URL } from '../../config'
+  import { flattenObject, showNotify, base64Encode } from '../../utils'
   import ElParam from './param.vue'
   import ElFieldBlock from '../../components/field-block.vue'
 
@@ -81,9 +82,9 @@
         newResponse: {},
         response: {
           id: '',
-          type: '',
+          type: 'success',
           description: '',
-          enctype: '',
+          enctype: 'application/json',
           jsonp_callback: '',
           is_mockjs: false,
           body: '{}'
@@ -104,7 +105,12 @@
         }
       }
     },
-    computed: mapGetters(['user', 'project', 'api', 'fields']),
+    computed: {
+      ...mapGetters(['user', 'project', 'api', 'fields']),
+      mockUrl() {
+        return MOCK_URL + base64Encode(this.response.id)
+      }
+    },
     watch: {
       api: {
         handler: 'loadData',
@@ -141,12 +147,7 @@
               result = await this.createResponse(this.response)
             }
 
-            if (this.response.id) {
-              this.response = JSON.parse(JSON.stringify(this.response))
-            } else {
-              this.response = JSON.parse(JSON.stringify(this.newResponse))
-            }
-
+            this.response = JSON.parse(JSON.stringify(this.response.id ? this.response : this.newResponse))
             this.disabled = false
 
             showNotify(this, result)
@@ -164,7 +165,7 @@
       },
       async handleBindBackup() {
         let name = this.apiModel.name + this.response.description
-        let url = this.project.base_url + this.apiModel.path
+        let url = this.apiModel.url
         let body = JSON.parse(this.response.body)
         let is_mockjs = this.response.is_mockjs
         let rules = jsonSchemaGenerator(is_mockjs ? Mockjs.mock(body) : body)
@@ -188,7 +189,7 @@
         })
       },
       async handleUnbindBackup() {
-        let backup = this.project.base_url + this.apiModel.path
+        let backup = this.apiModel.url
         let result = await this.unBindBackup({ backup })
 
         result.code = result.rtn

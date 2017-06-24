@@ -35,8 +35,12 @@ export default class extends Base {
         return item.project_id
       })
 
-      where = { id: ['IN', ids] }
-      where = { ...where, ...params }
+      if (ids.length > 0) {
+        where.id = ['IN', ids]
+        where = { ...where, ...params }
+      } else {
+        return this.success([])
+      }
     } else if ('explore' === action) { // 浏览项目(非私有)
       where = { user_id: user.id, _logic: 'OR' }
     }
@@ -52,8 +56,11 @@ export default class extends Base {
   }
 
   async postAction() {
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
+    let params = this.get()
+    let action = params.action || ''
     let user = this.userInfo()
 
     delete data[pk]
@@ -64,27 +71,25 @@ export default class extends Base {
 
     data.user_id = user.id
 
-    let id = await this.modelInstance.add(data)
+    let id = await model.add(data)
 
     data.id = id
 
-    let memberModelInstance = this.model('member')
-
     // `项目创建者`即为`拥有者`
-    await memberModelInstance.add({
+    await this.model('member').add({
       project_id: id,
       user_id: user.id,
       is_owner: 1
     })
 
     if (id) {
-      await this.createLogger({ description: `初始化了项目【${data.name}】`, project_id: this.id })
+      await this.createLogger({ description: `初始化了项目【${data.name}】`, project_id: id })
     }
 
     return this.success(data)
   }
 
-  async deleteAction() {
+  async deleteAction(self) {
     if (!this.id) {
       return this.fail('params error')
     }
@@ -93,34 +98,28 @@ export default class extends Base {
       return this.fail('NOT_OWNER')
     }
 
-    let rows = await this.modelInstance.transaction(async () => {
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
+    let rows = await model.transaction(async () => {
       // 删除成员
-      let memberModelInstance = this.model('member').db(this.modelInstance.db())
-      await memberModelInstance.where({ project_id: this.id }).delete()
+      await self.model('member').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
       // 删除字段
-      let fieldModelInstance = this.model('field').db(this.modelInstance.db())
-      await fieldModelInstance.where({ project_id: this.id }).delete()
+      await self.model('field').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
       // 删除参数
-      let paramModelInstance = this.model('param').db(this.modelInstance.db())
-      await paramModelInstance.where({ project_id: this.id }).delete()
+      await self.model('param').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
       // 删除响应
-      let responseModelInstance = this.model('response').db(this.modelInstance.db())
-      await responseModelInstance.where({ project_id: this.id }).delete()
+      await self.model('response').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
       // 删除接口
-      let apiModelInstance = this.model('api').db(this.modelInstance.db())
-      await apiModelInstance.where({ project_id: this.id }).delete()
+      await self.model('api').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
       // 删除分组
-      let moduleModelInstance = this.model('module').db(this.modelInstance.db())
-      await moduleModelInstance.where({ project_id: this.id }).delete()
+      await self.model('module').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
-      let pk = await this.modelInstance.getPk()
-
-      return await this.modelInstance.where({ [pk]: this.id }).delete()
+      return await model.where({ [pk]: self.id }).delete()
     })
 
     if (rows > 0) {
@@ -135,7 +134,8 @@ export default class extends Base {
       return this.fail('params error')
     }
 
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
 
 
@@ -153,7 +153,7 @@ export default class extends Base {
       return this.fail('data is empty')
     }
 
-    let rows = await this.modelInstance.where({ [pk]: this.id }).update(data)
+    let rows = await model.where({ [pk]: this.id }).update(data)
 
     if (rows > 0) {
       await this.createLogger({ description: `更新了项目【${data.name}】信息`, project_id: this.id })

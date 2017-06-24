@@ -8,11 +8,11 @@ Vue.filter('marked', function (value) {
 })
 
 Vue.filter('dateformat', function (value) {
-  return moment(value, 'YYYY-MM-DD HH:mm:ss', 'zh-cn').fromNow()
+  return moment(value).utcOffset(-8).locale('zh-cn').fromNow()
 })
 
 Vue.filter('displayName', function (value) {
-  return value.nickname || value.username || value.email || value.mobile
+  return value.fullname || value.username || value.email || value.mobile
 })
 
 Vue.filter('imgformat', function (value) {

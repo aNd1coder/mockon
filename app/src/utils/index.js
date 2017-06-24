@@ -4,7 +4,7 @@ import moment from 'moment'
 import marked from 'marked'
 import highlight from 'highlight.js'
 import _ from 'lodash'
-import { COOKIE_DOMAIN, COOKIE_EXPIRES } from '../config'
+import { COOKIE_DOMAIN, COOKIE_EXPIRES, BASE64_SALT } from '../config'
 
 Vue.use(VueCookie)
 
@@ -139,7 +139,7 @@ export function jsonFormat(body, fields, jsonp) {
   htmlBlock = _.trimEnd(htmlBlock, '\n')
   htmlBlock = _.trimEnd(htmlBlock, ',')
 
-  htmlBlock = (jsonp ? buildJSONP(jsonp + '(') : '') + '{\n' + htmlBlock + '\n}' + (jsonp ? buildJSONP(')') : '')
+  htmlBlock = (jsonp ? buildJSONP(jsonp + '(') : '') + '{' + (htmlBlock ? '\n' + htmlBlock + '\n' : '') + '}' + (jsonp ? buildJSONP(')') : '')
 
   return htmlBlock
 }
@@ -167,6 +167,14 @@ export function flattenObject(originObject) {
     }
   }
   return result
+}
+
+export function base64Encode(value) {
+  return window.btoa(BASE64_SALT + value)
+}
+
+export function base64Decode(value) {
+  return window.atob(value).replace(BASE64_SALT, '')
 }
 
 export function showNotify(ctx, result, successFn, errorFn) {

@@ -73,7 +73,7 @@
       this.fields.forEach(field => {
         if (field.name === this.name) {
           this.field = JSON.parse(JSON.stringify(field))
-          this.share = this.field.response_id === 0
+          this.share = this.field.api_id === 0 && this.field.response_id === 0
           this.field.required = !!this.field.required
         }
       })
@@ -88,6 +88,7 @@
             this.disabled = true
             this.field.name = this.name
             this.field.project_id = this.project.id
+            this.field.api_id = this.share ? 0 : this.api.id
             this.field.response_id = this.share ? 0 : this.response.id
             this.field.required = this.field.required ? 1 : 0
 

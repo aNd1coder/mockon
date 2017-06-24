@@ -3,14 +3,16 @@
     <div class="document-summary">
       <div class="document-search-input">
         <i class="fa fa-search"></i>
-        <input type="text" placeholder="输入关键字搜索...">
+        <el-tooltip class="item" effect="dark" content="可按接口名称、描述、URL、请求方式搜索" placement="right">
+          <input type="text" v-model="search" placeholder="关键词...">
+        </el-tooltip>
       </div>
       <ul v-if="modules.length > 0" class="summary">
         <li v-for="module in modules" :key="module.id">
           <span class="module-name">{{ module.name }}</span>
           <ul v-if="module.api.length > 0">
-            <li v-for="ma in module.api" :key="ma.id" :class="{ 'active': ma.id === api.id }">
-              <router-link :to="{ name: 'document-view', params: { id: ma.id } }">
+            <li v-for="ma in module.api" v-if="filterApi(ma)" :key="ma.id" :class="{ 'active': ma.id === api.id }">
+              <router-link :to="{ name: 'document-view', params: { id: base64Encode(ma.id) } }">
                 <el-http-method :method="ma.method"></el-http-method> {{ ma.name }}
               </router-link>
             </li>
@@ -25,10 +27,14 @@
       </h1>
       <el-row>
         <el-col :span="8">
-          <el-input style="display: none;" v-model="keyword" placeholder="请输入关键词..." icon="search"></el-input>
           <h3>调试记录</h3>
+          <el-tooltip class="item" effect="dark" content="可按接口地址、请求方法、请求方式搜索" placement="top">
+            <el-input v-model="keyword" placeholder="关键词..." icon="search"></el-input>
+          </el-tooltip>
           <ul v-if="debugs.length > 0" class="debugs">
-            <li v-for="debug in debugs" class="debug" @click="handleDebugClick(debug)">
+            <li v-for="debug in debugs"
+                v-if="filterDebug(debug)"
+                class="debug" @click="handleDebugClick(debug)">
               <el-http-method :method="parseDebugData(debug).method"></el-http-method>
               {{ parseDebugData(debug).url }}
               <i class="fa fa-close" title="删除" @click="handleDebugDelete(debug)"></i>
@@ -58,10 +64,12 @@
                 <el-option label="代理接口" value="proxy"></el-option>
               </el-select>
             </el-form-item>
+            <el-tag v-if="form.type === 'mock'" type="primary">Mock 数据地址：<a :href="mockUrl" target="_blank">{{ mockUrl }}</a></el-tag>
             <el-form-item label="请求参数">
               <el-form-item v-for="(param, index) in form.params" :key="param.id">
                 <el-input type="text" v-model="param.default_value" placeholder="参数值">
                   <template slot="prepend">
+                    <el-checkbox v-model="param.checked"></el-checkbox>
                     <el-select v-model="param.location" placeholder="参数位置">
                       <el-option v-for="(label, location) in PARAM_LOCATION" :key="location" :label="label" :value="location"></el-option>
                     </el-select>
@@ -69,7 +77,7 @@
                     <el-input v-else type="text" v-model="param.name" placeholder="参数名"></el-input>
                   </template>
                   <template slot="append">
-                    <el-button v-if="index === form.params.length - 1" icon="plus" @click="handleNew"></el-button>
+                    <el-button v-if="index === form.params.length - 1" icon="plus" @click="newParam"></el-button>
                     <el-button v-else icon="close" :disabled="!!param.required" @click="handleDelete(param)"></el-button>
                   </template>
                 </el-input>
@@ -80,8 +88,8 @@
             </el-form-item>
           </el-form>
           <div class="response">
-            <el-tag type="gray"><i class="el-icon-warning"></i> 如为 JSONP 请求则只返回 JSON 部分数据</el-tag>
-            <div ref="body" class="body"></div>
+            <el-tag type="danger"><i class="el-icon-warning"></i> 如为 JSONP 请求只返回 JSON 数据部分</el-tag>
+            <div v-if="body" ref="body" class="body"></div>
           </div>
         </el-col>
       </el-row>
@@ -96,12 +104,15 @@
           <div class="page-inner">
             <section class="normal markdown-section">
               <h1>{{ api.name }}
-                <el-tag type="primary">{{ statusMap[api.status] }}</el-tag>
+                <el-tag type="gray">{{ statusMap[api.status] }}</el-tag>
               </h1>
-              <p>{{ api.description }}</p>
-
+              <blockquote>{{ api.description }}</blockquote>
+              <template v-if="api.developer">
+                <h3>接口负责人</h3>
+                <p>{{ api.developer }}</p>
+              </template>
               <h3>URL</h3>
-              <el-tag type="gray"><el-http-method :method="api.method"></el-http-method>{{ api_url }}</el-tag>
+              <el-tag type="gray"><el-http-method :method="api.method"></el-http-method>{{ api.url }}</el-tag>
 
               <template v-for="response in api.response">
                 <h3 :class="'response-block response-block-'+response.type">
@@ -120,18 +131,21 @@
                   <el-table-column prop="required" label="必需" inline-template>
                     <span>{{ (row.required ? '是' : '否') }}</span>
                   </el-table-column>
-                  <el-table-column prop="description" label="描述"></el-table-column>
+                  <el-table-column prop="description" label="描述" inline-template>
+                    <div v-html="marked(row.description)"></div>
+                  </el-table-column>
                 </el-table>
                 <pre><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code></pre>
               </template>
-
-              <h3>状态码</h3>
-              <el-table v-if="errors.length" :data="errors">
-                <el-table-column prop="code" label="状态码" inline-template>
-                  <span>{{ row.name ? row.name + '('+ row.code +')' : row.code }}</span>
-                </el-table-column>
-                <el-table-column prop="description" label="状态描述"></el-table-column>
-              </el-table>
+              <template v-if="errors.length">
+                <h3>状态码</h3>
+                <el-table :data="errors">
+                  <el-table-column prop="code" label="状态码" inline-template>
+                    <span>{{ row.name ? row.name + '(' + row.code + ')' : row.code }}</span>
+                  </el-table-column>
+                  <el-table-column prop="description" label="状态描述"></el-table-column>
+                </el-table>
+              </template>
             </section>
           </div>
         </div>
@@ -154,7 +168,12 @@
 } from '../../config'
   import ElHttpMethod from '../../components/http-method.vue'
   import ElNodata from '../../components/nodata.vue'
-  import { jsonFormat } from '../../utils'
+  import {
+    jsonFormat,
+    base64Encode,
+    base64Decode,
+    marked
+  } from '../../utils'
   import Mock from 'mockjs'
 
   export default{
@@ -178,7 +197,11 @@
         PARAM_LOCATION,
         MOCK_URL,
         PROXY_URL,
+        marked,
+        base64Encode,
+        search: '',
         keyword: '',
+        body: '',
         disabled: false,
         response: {},
         form: {
@@ -186,6 +209,7 @@
           enctype: '',
           url: '',
           type: '',
+          checked: false,
           params: []
         },
         rules: {
@@ -205,56 +229,23 @@
         'errors',
         'debugs'
       ]),
-      api_url() {
-        return this.api.project.base_url + this.api.path
-      },
       params () {
         let params = {}
 
         this.form.params.forEach(param => {
-          if (!params.hasOwnProperty(param.location)) {
-            params[param.location] = {}
-          }
+          if (param.checked) {
+            if (!params.hasOwnProperty(param.location)) {
+              params[param.location] = {}
+            }
 
-          params[param.location][param.name] = param.default_value
+            params[param.location][param.name] = param.default_value
+          }
         })
 
         return params
       },
-      paths () {
-        let paths = ''
-
-        if (this.params.path) {
-          for (let p in this.params.path) {
-            paths += p + '/' + this.params.path[p]
-          }
-        }
-
-        if (paths) {
-          paths = (this.api.path.lastIndexOf('/') !== this.api.path.length - 1 ? '/' : '' ) + paths
-        }
-
-        return paths
-      },
-      querys () {
-        let querys = ''
-
-
-        if (this.params.query) {
-          for (let q in this.params.query) {
-            querys += '&' + q + '=' + this.params.query[q]
-          }
-        }
-
-        if (querys) {
-          querys = querys.substring(1)
-          querys = (this.api.path.indexOf('?') === -1 ? '?' : '&') + querys
-        }
-
-        return querys
-      },
-      url () {
-        return this.api_url + this.paths
+      mockUrl() {
+        return MOCK_URL + base64Encode(this.response.id)
       },
       wrapClass() {
         return [
@@ -289,10 +280,6 @@
         'createDebug',
         'deleteDebug'
       ]),
-      handleNew() {
-        this.uuid++
-        this.newParam()
-      },
       handleDelete(param) {
         this.form.params.forEach((item, index) => {
           if (item.id === param.id) {
@@ -306,36 +293,55 @@
             let params = {}
             let url = this.form.url
             let method = this.form.method.toLowerCase()
-            let options = {}
-            let body
+            let jsonp_callback = this.form.jsonp_callback
             let data
 
-            if (this.response.jsonp_callback) {
-              method = 'jsonp'
-              options = { 'jsonp': this.response.jsonp_callback }
-            }
-
             this.form.params.forEach(param => {
-              params[param.name] = param.default_value
+              if (param.checked) {
+                params[param.name] = param.default_value
+              }
             })
 
             this.disabled = true
 
             data = params
 
+            // JSONP 请求
+            if (jsonp_callback) {
+              data = { params: { ...params, callback: jsonp_callback } }
+              method = 'jsonp'
+            }
+
             if (this.form.type === 'mock') {
               url = MOCK_URL + this.response.id
+              method = 'post'
             } else if (this.form.type === 'proxy') {
               data = { ...this.form }
               data.params = this.params
               method = 'post'
               url = PROXY_URL
+            } else {
+              data = {
+                body: this.params.body,
+                headers: this.params.header,
+                params: this.params.query
+              }
             }
 
-            await this.$http[method](url, data, options).then(async(response) => {
-              body = JSON.stringify(response.body, null, 2)
+            this.body = false
+
+            await this.$http[method](url, data).then(async (response) => {
+              let body
+
+              if (response.body) {
+                body = response.body
+              } else {
+                body = eval('(' + response.bodyText + ')') // 兼容 key 没加引号
+              }
+
+              this.body = JSON.stringify(body, null, 2)
               await this.createDebug({ data: JSON.stringify(this.form) })
-              this.renderEditor(body)
+              this.renderEditor()
             }).catch(error => {
               console.log(error)
             })
@@ -347,26 +353,36 @@
         })
       },
       handleDebugger(response) {
+        let params
+
         this.withDebugger = !this.withDebugger
 
         if (this.withDebugger) {
           this.response = response
 
           if (response.param.length > 0) {
-            this.form.params = JSON.parse(JSON.stringify(response.param))
+            params = JSON.parse(JSON.stringify(response.param))
+
+            this.form.params = params.map(param => {
+              param.checked = !!param.required
+              return param
+            })
           } else {
             this.form.params = []
-            this.newParam()
           }
 
-          this.form.url = this.api_url
+          this.newParam()
+
+          this.form.url = this.api.url
           this.form.method = this.api.method
           this.form.enctype = this.api.project.enctype
+          this.form.jsonp_callback = this.response.jsonp_callback
 
-          this.fetchDebugs();
+          this.fetchDebugs()
         }
       },
       handleDebugClick(debug) {
+        this.body = false
         this.form = JSON.parse(debug.data)
       },
       handleDebugDelete(debug) {
@@ -391,13 +407,16 @@
           description: '',
           default_value: '',
           location: 'query',
-          name: ''
+          name: '',
+          checked: false
         })
+
+        this.uuid++
       },
       parseDebugData(debug) {
         return JSON.parse(debug.data)
       },
-      renderEditor(body) {
+      renderEditor() {
         let editor = ace.edit(this.$refs.body)
 
         editor.$blockScrolling = Infinity
@@ -407,11 +426,11 @@
         editor.setOptions({ maxLines: Infinity })
         editor.setShowPrintMargin(false)
         editor.setReadOnly(true)
-        editor.setValue(body)
+        editor.setValue(this.body)
         editor.clearSelection()
       },
       async loadData() {
-        let id = this.$route.params.id
+        let id = base64Decode(this.$route.params.id)
 
         await this.fetchApi({ id })
         await this.fetchModules({ project_id: this.api.project_id })
@@ -428,6 +447,31 @@
         }
 
         return jsonFormat(body, this.fields, response.jsonp_callback)
+      },
+      filterApi(api) {
+        let fields = ['name', 'description', 'url', 'method']
+        let match = false
+
+        for (let field of fields) {
+          if (api[field].toLowerCase().indexOf(this.search.toLowerCase()) !== -1) {
+            match = true
+          }
+        }
+
+        return match
+      },
+      filterDebug(debug) {
+        let d = this.parseDebugData(debug)
+        let fields = ['method', 'url', 'type']
+        let match = false
+
+        for (let field of fields) {
+          if (d[field].toLowerCase().indexOf(this.keyword.toLowerCase()) !== -1) {
+            match = true
+          }
+        }
+
+        return match
       },
       tableRowClassName(row, index) {
         if (row.required) {
@@ -461,6 +505,7 @@
       padding-top: 5px;
 
       h3 {
+        margin: 6px 0;
         font-weight: normal;
         font-size: 14px;
         color: rgb(72, 87, 106);
@@ -529,10 +574,8 @@
   }
   .response {
     .el-tag {
-      display: block;
       margin-bottom: 10px;
       font-size: 12px;
-      color: #666;
     }
 
     .body {
@@ -692,6 +735,18 @@
       }
     }
 
+    .el-tag--primary {
+      font-size: 14px;
+
+      a {
+        color: inherit;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
     .el-input-group {
       width: 100%;
     }
@@ -703,6 +758,10 @@
     .el-input-group__prepend {
       width: 50%;
       padding: 0;
+
+      .el-checkbox {
+        margin-left: 10px;
+      }
 
       > .el-select, > .el-input, > .el-autocomplete {
         display: inline-block;
@@ -796,7 +855,6 @@
         color: #666;
 
         .hljs-jsonp {
-          color: #20a0ff;
           font-weight: bold;
         }
         .hljs-comment,
@@ -1118,7 +1176,7 @@
     blockquote {
       margin: 2em 0;
       padding-left: 20px;
-      border-left: 4px solid #42b983;
+      border-left: 4px solid #eee;
     }
     blockquote p {
       font-weight: 600;
@@ -1173,6 +1231,16 @@
     }
     .row-required {
       color: #000;
+    }
+    pre {
+      background-color: transparent;
+      padding: 0;
+    }
+    code {
+      background-color: #f9fafc;
+      padding: 2px 4px;
+      border: 1px solid #eaeefb;
+      border-radius: 4px;
     }
   }
 </style>

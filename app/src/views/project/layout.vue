@@ -40,16 +40,6 @@
             name: 'project-member',
             icon: 'user-o'
           },
-          /*{
-           title:'主题风格',
-           name: 'project-theme',
-           icon: 'picture-o'
-           },
-           {
-           title: '错误码',
-           name: 'project-error',
-           icon: 'times-circle-o'
-           },*/
           {
             title: '项目设置',
             name: 'project-setting',

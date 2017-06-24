@@ -1,13 +1,14 @@
 <template>
-  <router-link :to="{ name: 'user', params: { username: user.username } }" class="el-user-block">
+  <span @click="handleRoute" class="el-user-block">
     <span class="el-user-avatar"><img :src="user.avatar | imgformat" :width="size" :title="user | displayName"/></span>
     <span v-if="nameVisible" class="el-user-name">{{ user | displayName }}</span>
-  </router-link>
+  </span>
 </template>
 <style lang="scss" scoped>
   .el-user-block {
     display: inline-block;
     text-align: center;
+    cursor: pointer;
   }
   .el-user-avatar {
     position: relative;
@@ -15,6 +16,8 @@
     width: 40px;
     height: 40px;
     margin: 0 auto;
+    border-radius: 50%;
+    overflow: hidden;
 
     &:before {
       position: absolute;
@@ -34,7 +37,6 @@
       top: 50%;
       left: 50%;
       max-width: 100%;
-      max-height: 100%;
       transform: translate(-50%, -50%);
       border-radius: 50%;
     }
@@ -65,6 +67,15 @@
       nameVisible: {
         type: Boolean,
         default: true
+      }
+    },
+    methods: {
+      handleRoute() {
+        if (this.disableRoute) {
+          return false
+        } else {
+          this.$router.push({ name: 'user', params: { username: this.user.username } })
+        }
       }
     }
   }

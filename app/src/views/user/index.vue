@@ -1,8 +1,20 @@
 <template>
-  <el-row class="user-index" v-loading.fullscreen.lock="loading" element-loading-text="加载中">
+  <el-row v-if="user" class="user-index" v-loading.fullscreen.lock="loading" element-loading-text="加载中">
     <div class="page-header">
-      <el-user-block :user="user" :size="100" class="avatar"></el-user-block>
-      <el-tag type="gray">{{ user.description || '暂无简介信息' }}</el-tag>
+      <div :class="'el-user-block' + (isMe ? (avatar ? '':' active'):'')">
+        <div class="el-user-avatar">
+          <el-upload
+            v-if="isMe"
+            class="el-upload-wrapper"
+            :action="UPLOAD_URL"
+            :show-file-list="false"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload"></el-upload>
+          <img v-if="avatar" width="100" :src="avatar | imgformat" class="avatar">
+        </div>
+        <div class="el-user-name">{{ user | displayName }}</div>
+      </div>
+      <el-tag type="gray">{{ user.org_name }}</el-tag>
     </div>
     <el-tabs v-model="activeName" @tab-click="handleClick">
       <el-tab-pane label="最新动态" name="activity">
@@ -28,13 +40,13 @@
       </el-tab-pane>
       <el-tab-pane label="个人项目" name="personal">
         <el-row v-if="activeName === 'personal'" :gutter="20">
-          <el-col v-if="projects.length === 0">
+          <el-col v-if="projects.length === 0 && session && session.id !== user.id">
             <el-nodata></el-nodata>
           </el-col>
           <el-col v-else :span="6" v-for="project in projects" :key="project.id">
             <el-project-block :project="project"></el-project-block>
           </el-col>
-          <el-col v-if="projects.length !== 0 && (session && session.id === user.id)" :span="6">
+          <el-col v-if="isMe" :span="6">
             <div class="project-plate project-plate-new">
               <router-link class="fa fa-plus-circle" :to="{ name: 'project-new' }" title="新增项目"></router-link>
             </div>
@@ -56,6 +68,8 @@
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
+  import { UPLOAD_URL } from '../../config'
+  import { showNotify } from '../../utils'
   import ElUserBlock from '../../components/user-block.vue'
   import ElProjectBlock from '../../components/project-block.vue'
   import ElNodata from '../../components/nodata.vue'
@@ -68,6 +82,8 @@
     },
     data() {
       return {
+        UPLOAD_URL,
+        avatar: '',
         page: 1,
         limit: 10,
         more: true,
@@ -76,14 +92,23 @@
         loading: true
       }
     },
-    computed: mapGetters([
-      'session',
-      'user',
-      'logs',
-      'projects'
-    ]),
+    computed: {
+      ...mapGetters([
+        'session',
+        'user',
+        'logs',
+        'projects'
+      ]),
+      isMe() {
+        return this.session && (this.session.id === this.user.id)
+      }
+    },
     watch: {
-      $route: 'loadData'
+      $route (to, from) {
+        if (to.name === from.name) {
+          this.loadData()
+        }
+      }
     },
     beforeRouteEnter(to, from, next) {
       next(async(vm) => {
@@ -91,7 +116,12 @@
       })
     },
     methods: {
-      ...mapActions(['fetchUser', 'fetchLogs', 'fetchProjects']),
+      ...mapActions([
+        'fetchUser',
+        'updateUser',
+        'fetchLogs',
+        'fetchProjects'
+      ]),
       async handleClick(tab, event) {
         this.loading = true
 
@@ -103,6 +133,41 @@
 
         this.loading = false
       },
+      async handleTimeline() {
+        this.page++
+
+        let result = await this.fetchMoreLogs()
+
+        if (result.data.data.length === 0) {
+          this.done = true
+        }
+      },
+      async handleAvatarSuccess(res, file) {
+        let result
+        let avatar = res.data
+
+        this.loading = true
+
+        result = await this.updateUser({ ...this.session, avatar })
+
+        showNotify(this, result, ctx => {
+          ctx.avatar = avatar
+        })
+
+        this.loading = false
+      },
+      beforeAvatarUpload(file) {
+        const isImage = file.type === 'image/jpeg' || file.type === 'image/png';
+        const isLt2M = file.size / 1024 / 1024 < 2;
+
+        if (!isImage) {
+          this.$message.error('上传头像图片只能是 JPG、PNG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!');
+        }
+        return isImage && isLt2M;
+      },
       async loadData() {
         let username = this.$route.params.username
 
@@ -113,6 +178,7 @@
         await this.fetchMoreLogs({ user_id: this.user.id })
 
         this.loading = false
+        this.avatar = this.user.avatar
 
         if (this.logs.length < this.limit) {
           this.more = false
@@ -124,15 +190,6 @@
           page: this.page,
           limit: this.limit
         })
-      },
-      async handleTimeline() {
-        this.page++
-
-        let result = await this.fetchMoreLogs()
-
-        if (result.data.data.length === 0) {
-          this.done = true
-        }
       }
     }
   }
@@ -143,25 +200,81 @@
       border-bottom: none;
       text-align: center;
 
+      .el-upload-wrapper {
+        position: relative;
+        height: 100%;
+        z-index: 2;
+
+        &:after {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100px;
+          line-height: 100px;
+          color: #fff;
+          text-align: center;
+          font-size: 14px;
+          content: '上传头像';
+          background-color: rgba(0, 0, 0, .3);
+          opacity: 0;
+          border-radius: 50%;
+          transition: opacity .5s linear
+        }
+      }
+
       .el-user-block {
         display: block;
         width: 100px;
         margin: 0 auto;
-        cursor: default;
+
+        &:hover, &.active {
+          .el-upload-wrapper:after {
+            opacity: 1;
+            cursor: pointer;
+          }
+
+          .el-upload {
+            position: relative;
+            height: 100px;
+            z-index: 1;
+          }
+        }
       }
 
       .el-user-avatar {
-        width:100px;
+        position: relative;
+        width: 100px;
         height: 100px;
+        overflow: hidden;
+        border-radius: 50%;
 
         &:before {
-          font-size: 110px;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          font: normal normal normal 110px/1 FontAwesome;
+          text-rendering: auto;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          content: '\f09b';
+          color: #e5e5e5;
+          transform: translate(-50%, -50%);
+        }
+
+        .avatar {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
         }
       }
 
       .el-user-name {
+        margin-top: 5px;
         color: #333;
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 700;
       }
 
@@ -169,16 +282,6 @@
         margin-top: 10px;
         padding-left: 10px;
         padding-right: 10px;
-      }
-      .description {
-        font-size: 14px;
-        color: #666;
-      }
-      .owner {
-        font-size: 14px;
-        color: #999;
-        font-weight: 400;
-        vertical-align: middle;
       }
     }
     .el-tabs {

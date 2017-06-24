@@ -4,7 +4,7 @@
       <el-autocomplete
         class="param-autocomplete"
         custom-item="param-item"
-        placeholder="参数名称"
+        placeholder="名称"
         v-model="param.name"
         :fetch-suggestions="querySearch"
         @select="handleSelect"
@@ -12,23 +12,23 @@
       </el-autocomplete>
     </el-form-item>
     <el-form-item prop="type">
-      <el-select v-model="param.type" placeholder="参数类型">
+      <el-select v-model="param.type" placeholder="类型">
         <el-option v-for="type in PARAM_TYPE" :key="type" :label="type" :value="type"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item prop="location">
-      <el-select v-model="param.location" placeholder="参数位置">
+      <el-select v-model="param.location" placeholder="位置">
         <el-option v-for="(label, value) in PARAM_LOCATION" :key="value" :label="label" :value="value"></el-option>
       </el-select>
     </el-form-item>
     <el-form-item prop="length">
-      <el-input type="text" v-model="param.length" placeholder="参数长度"></el-input>
+      <el-input type="text" v-model="param.length" placeholder="长度"></el-input>
     </el-form-item>
     <el-form-item prop="default_value">
       <el-input type="text" v-model="param.default_value" placeholder="默认值"></el-input>
     </el-form-item>
     <el-form-item prop="description">
-      <el-input type="text" v-model="param.description" placeholder="参数描述"></el-input>
+      <el-input type="textarea" :rows="1" :autosize="{ minRows: 1, maxRows: 99}" v-model="param.description" placeholder="描述(markdown)"></el-input>
     </el-form-item>
     <el-form-item class="el-form-required" prop="required">
       <el-switch v-model="param.required" on-text="必选" off-text="可选"></el-switch>
@@ -72,10 +72,12 @@
         PARAM_TYPE,
         PARAM_LOCATION,
         disabled: false,
+        newParam: {},
         param: {
           id: '',
           name: '',
-          type: '',
+          type: 'string',
+          location: 'query',
           length: '',
           default_value: '',
           required: false,
@@ -95,6 +97,8 @@
       'params'
     ]),
     mounted() {
+      this.newParam = JSON.parse(JSON.stringify(this.param))
+
       if (this.data && this.data.id) {
         this.param = JSON.parse(JSON.stringify(this.data))
         this.param.required = !!this.param.required
@@ -132,6 +136,12 @@
             if (this.param.id) {
               result = await this.updateParam(this.param)
             } else {
+              if (!this.response.id) {
+                this.$message.error('请先保存响应信息')
+                this.disabled = false
+                return false
+              }
+
               this.param.project_id = this.project.id
               this.param.api_id = this.api.id
               this.param.response_id = this.response.id
@@ -142,15 +152,7 @@
             if (this.param.id) {
               this.param = JSON.parse(JSON.stringify(this.param))
             } else {
-              this.param = {
-                id: '',
-                name: '',
-                type: '',
-                length: '',
-                default_value: '',
-                required: false,
-                description: ''
-              };
+              this.param = JSON.parse(JSON.stringify(this.newParam));
             }
 
             this.disabled = false
@@ -196,10 +198,11 @@
       margin: 0 10px;
     }
 
-    .el-input__inner {
+    .el-input__inner, .el-textarea__inner {
       padding: 3px 0;
       border-color: #fff;
       border-radius: 0;
+      resize: none;
 
       &:hover, &:focus {
         border-color: #fff #fff #20a0ff #fff !important;

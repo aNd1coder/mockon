@@ -1,5 +1,5 @@
 <template>
-  <el-row v-if="project && project.id">
+  <el-row v-loading.body="loading" element-loading-text="加载中">
     <el-col :span="24">
       <div class="page-header">
         <div class="logo">
@@ -7,24 +7,19 @@
           <span v-else>{{ project.name.charAt(0) }}</span>
         </div>
         <div class="meta">
-          <h1 class="name">{{ project.name }}<el-tag type="gray">{{ project.base_url }}</el-tag></h1>
+          <h1 class="name">{{ project.name }}</h1>
           <h2 class="description" v-html="marked(project.description)"></h2>
           <ul class="links">
             <li class="link">
-              <router-link :to="{ name: 'project-member', params: { code: project.code } }">
-                <i class="fa fa-user-o"></i>成员({{ project.members.length }})
-              </router-link>
-            </li>
-            <li class="link"> /
               <router-link :to="{ name: 'user', params: { username: project.owner.username } }">
-                {{ project.owner.username }}
+                {{ project.owner | displayName }}
               </router-link>
               创建于 {{ project.created_at | dateformat }}
             </li>
           </ul>
         </div>
       </div>
-      <el-tabs type="card" @tab-click="handleClick">
+      <el-tabs type="card">
         <el-tab-pane label="动态">
           <el-row type="flex">
             <el-col :span="18">
@@ -80,28 +75,32 @@
     data() {
       return {
         marked,
+        loading: true,
         page: 1,
         limit: 10,
         more: true,
         done: false
       }
     },
-    computed: {
-      ...mapGetters(['project', 'logs'])
+    computed: mapGetters(['project', 'logs']),
+    watch: {
+      project: 'loadData'
     },
-    beforeRouteEnter({ params: { code } }, from, next) {
-      next(async(vm) => {
-        await vm.fetchProject({ code })
-        await vm.fetchMoreLogs()
-
-        if (vm.logs.length < vm.limit) {
-          vm.more = false
-        }
+    beforeRouteEnter(to, from, next) {
+      next(async (vm) => {
+        vm.loadData()
       })
     },
     methods: {
-      ...mapActions(['fetchProject', 'fetchLogs']),
-      async handleClick(tab, event) {
+      ...mapActions(['fetchLogs']),
+      async loadData() {
+        await this.fetchMoreLogs()
+
+        this.loading = false
+
+        if (this.logs.length < this.limit) {
+          this.more = false
+        }
       },
       async fetchMoreLogs() {
         return await this.fetchLogs({
@@ -128,16 +127,26 @@
     border-bottom: none;
 
     .logo {
+      position: relative;
       float: left;
-      width:100px;
-      height:100px;
-      line-height:100px;
-      border: 1px solid #e5e5e5;
+      width: 100px;
+      height: 100px;
+      line-height: 100px;
       text-align: center;
       font-size: 40px;
       color: #20a0ff;
       border-radius: 3px;
       background-color: #fff;
+      overflow: hidden;
+
+      img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        max-width: 100%;
+        max-height: 100%;
+        transform: translate(-50%, -50%);
+      }
     }
     .meta {
       position: relative;
@@ -218,7 +227,7 @@
     }
 
     .description {
-      margin-top: 10px;
+      margin-top: 5px;
       font-size: 14px;
       color: #333;
     }
@@ -228,7 +237,7 @@
       width: 6px;
       height: 6px;
       border: 3px solid #f3f3f3;
-      top: 19px;
+      top: 16px;
       left: -6px;
       border-radius: 50%;
       content: '';

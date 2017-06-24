@@ -42,8 +42,7 @@ export async function updateUser({ commit }, payload) {
   let result = await Vue.http.put('user/' + payload.id, payload)
 
   if (result.body.code === 0) {
-    await Vue.http.post('user', { action: 'signout' })
-    commit(types.SESSION_SIGNOUT)
+    commit(types.UPDATE_USER, payload)
   }
 
   return result.body

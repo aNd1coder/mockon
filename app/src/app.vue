@@ -9,21 +9,19 @@
         </div>
         <el-menu v-if="signedIn" class="el-menu-right" mode="horizontal">
           <el-menu-item index="1">
-            <el-badge is-dot>
-              <router-link :to="{ name: 'notification' }">
-                <i class="fa fa-bell-o"></i>消息
-              </router-link>
-            </el-badge>
+            <router-link :to="{ name: 'notification' }">
+              <i class="fa fa-bell-o"></i>消息
+            </router-link>
           </el-menu-item>
           <el-submenu index="2">
             <template slot="title">
               <el-user-block :user="session" :size="30" :nameVisible="false"></el-user-block>
             </template>
             <el-menu-item index="2-1">
-              <router-link :to="{ name: 'user', params: { username: session.username } }">我的主页</router-link>
+              <router-link :to="{ name: 'project-new' }">新建项目</router-link>
             </el-menu-item>
             <el-menu-item index="2-2">
-              <router-link :to="{ name: 'user-profile' }">设置</router-link>
+              <router-link :to="{ name: 'user', params: { username: session.username } }">我的主页</router-link>
             </el-menu-item>
             <el-menu-item index="2-3">
               <router-link :to="{ name: 'signout' }">退出</router-link>
@@ -284,10 +282,6 @@
   .el-table {
     border-width: 0 0 1px;
 
-    .cell {
-      white-space: nowrap;
-    }
-
     td .cell {
       padding-top: 10px;
       padding-bottom: 10px;
@@ -341,23 +335,8 @@
     border-style: dashed;
   }
   .project-plate-header,
-  .project-plate-content,
-  .project-plate-footer {
+  .project-plate-content {
     padding: 15px 15px 15px 95px;
-
-    .el-user-avatar {
-      width: 20px;
-      height: 20px;
-      margin-right: 3px;
-
-      &:before {
-        font-size: 20px;
-      }
-
-      img {
-        border-radius: 50%;
-      }
-    }
   }
   .project-plate-header {
     position: relative;
@@ -393,12 +372,14 @@
 
     .el-tag {
       position: absolute;
-      top:50%;
+      top: 50%;
       right: 10px;
       height: 20px;
       line-height: 20px;
       margin-left: 10px;
       transform: translateY(-50%);
+
+      .fa { margin-right: 0; }
     }
   }
   .project-plate-content {
@@ -418,17 +399,24 @@
     }
   }
   .project-plate-footer {
-    padding-top: 0;
+    margin: 15px 15px 15px 95px;
     color: #666;
     font-size: 0;
     overflow: hidden;
+    white-space: nowrap;
 
-    .item {
-      position: relative;
-      display: inline-block;
-      margin-right: 10px;
-      font-size: 12px;
-      vertical-align: middle;
+    .el-user-avatar {
+      width: 20px;
+      height: 20px;
+      margin-right: 3px;
+
+      &:before {
+        font-size: 20px;
+      }
+
+      img {
+        border-radius: 50%;
+      }
     }
   }
 </style>

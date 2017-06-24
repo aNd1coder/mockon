@@ -1,7 +1,8 @@
 <template>
-  <div v-else class="el-nodata">
+  <div class="el-nodata">
     <i class="fa fa-github"></i>
-    <span class="el-nodata-message">{{ message }}</span>
+    <div class="el-nodata-message">{{ message }}</div>
+    <slot></slot>
   </div>
 </template>
 <script type="text/babel">
@@ -17,6 +18,8 @@
 </script>
 <style lang="scss" scoped>
   .el-nodata {
+    display: block;
+    width: 100%;
     padding: 50px;
     text-align: center;
     color: #eee;
@@ -27,6 +30,7 @@
     }
   }
   .el-nodata-message {
+    margin: 10px 0;
     color: #ddd;
   }
 </style>

@@ -20,25 +20,32 @@ Vue.http.options.root = API_ROOT
 Vue.http.options.crossOrigin = true
 // Vue.http.options.credentials = true
 Vue.http.interceptors.push((request, next) => {
-  let token = store.getters.token || localStorage.getItem('token') || false
+  let ignore = request.url.indexOf('http://') !== -1
+  let token
 
-  if (token) {
-    request.headers = request.headers || {}
-    request.headers.set('X-ACCESS-TOKEN', token)
-    // request.headers.set('Authorization', `Bearer ${token}`)
+  if (!ignore) {
+    token = store.getters.token || localStorage.getItem('token') || false
+
+    if (token) {
+      request.headers = request.headers || {}
+      request.headers.set('X-ACCESS-TOKEN', token)
+      // request.headers.set('Authorization', `Bearer ${token}`)
+    }
   }
 
   next((response) => {
-    token = response.headers.get('X-ACCESS-TOKEN')
+    if (!ignore) {
+      token = response.headers.get('X-ACCESS-TOKEN')
 
-    if (response.body.code === 401) {
-      store.commit(SESSION_SIGNOUT)
+      if (response.body.code === 401) {
+        store.commit(SESSION_SIGNOUT)
 
-      router.push({ name: 'signin', query: { next: router.history.current.fullPath } })
-    }
+        router.push({ name: 'signin' })
+      }
 
-    if (token) {
-      store.commit(REFRESH_TOKEN, token)
+      if (token) {
+        store.commit(REFRESH_TOKEN, token)
+      }
     }
   })
 })

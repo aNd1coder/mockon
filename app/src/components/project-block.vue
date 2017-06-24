@@ -5,7 +5,7 @@
         <router-link :to="{ name: 'project-dashboard', params: { code: project.code } }">
           {{ project.name }}
         </router-link>
-        <el-tag v-if="project.status == 1" type="gray">已废弃</el-tag>
+        <el-tag v-if="project.private == 1" type="gray" title="私有项目"><i class="fa fa-lock"></i></el-tag>
       </h3>
       <router-link class="logo" :to="{ name: 'project-dashboard', params: { code: project.code } }">
         <img width="60" v-if="project.image" :src="project.image | imgformat">

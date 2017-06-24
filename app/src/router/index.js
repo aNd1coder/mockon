@@ -4,16 +4,11 @@ import store from '../store'
 import { SESSION_SIGNOUT } from '../store/modules/user/mutation-types'
 
 // common
-import Index from '../views/index.vue'
 import Signin from '../views/signin.vue'
-import Signup from '../views/signup.vue'
-import Password from '../views/password.vue'
-import Active from '../views/active.vue'
 import NotFound from '../views/404.vue'
 
 // user
 import UserIndex from '../views/user/index.vue'
-import UserProfile from '../views/user/profile.vue'
 
 // notification
 import NotificationIndex from '../views/notification/index.vue'
@@ -24,15 +19,9 @@ import ProjectNew from '../views/project/new.vue'
 import ProjectLayout from '../views/project/layout.vue'
 import ProjectDashboard from '../views/project/dashboard.vue'
 import ProjectMember from '../views/project/member.vue'
-import ProjectDocument from '../views/project/document.vue'
-import ProjectEditor from '../views/project/editor.vue'
-import ProjectSchema from '../views/project/schema.vue'
 import ProjectModule from '../views/project/module.vue'
 import ProjectApi from '../views/project/api.vue'
-import ProjectTable from '../views/project/table.vue'
-import ProjectField from '../views/project/field.vue'
 import ProjectError from '../views/project/error.vue'
-import ProjectTheme from '../views/project/theme.vue'
 import ProjectSetting from '../views/project/setting.vue'
 
 // document
@@ -51,33 +40,11 @@ const routes = [
     component: Signin
   },
   {
-    path: '/password',
-    name: 'password',
-    component: Password
-  },
-  {
-    path: '/signup',
-    name: 'signup',
-    component: Signup
-  },
-  {
     path: '/signout',
     name: 'signout',
     beforeEnter(to, from, next) {
       store.commit(SESSION_SIGNOUT)
       next('/signin')
-    }
-  },
-  {
-    path: '/active/:token',
-    component: Active
-  },
-  {
-    path: '/profile',
-    name: 'user-profile',
-    component: UserProfile,
-    meta: {
-      requireAuth: true
     }
   },
   {
@@ -97,7 +64,7 @@ const routes = [
     }
   },
   {
-    path: '/document',
+    path: '/doc',
     name: 'document',
     component: DocumentIndex,
     meta: {
@@ -105,7 +72,7 @@ const routes = [
     }
   },
   {
-    path: '/document/:id',
+    path: '/doc/:id',
     name: 'document-view',
     component: DocumentIndex,
     meta: {
@@ -172,14 +139,6 @@ const routes = [
         }
       },
       {
-        path: 'document',
-        name: 'project-document',
-        component: ProjectDocument,
-        meta: {
-          requireAuth: true
-        }
-      },
-      {
         path: 'member',
         name: 'project-member',
         component: ProjectMember,
@@ -191,14 +150,6 @@ const routes = [
         path: 'error',
         name: 'project-error',
         component: ProjectError,
-        meta: {
-          requireAuth: true
-        }
-      },
-      {
-        path: 'theme',
-        name: 'project-theme',
-        component: ProjectTheme,
         meta: {
           requireAuth: true
         }

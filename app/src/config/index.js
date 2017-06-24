@@ -1,13 +1,14 @@
 const production = process.env.NODE_ENV === 'production'
 
-export const DOMAIN = production ? 'http://api.mockon.jd.com' : 'http://127.0.0.1:8360'
+export const DOMAIN = production ? 'http://api.domain.com' : 'http://127.0.0.1:8360'
 export const API_ROOT = DOMAIN + '/v1.0'
 export const MOCK_URL = DOMAIN + '/mock/'
 export const PROXY_URL = DOMAIN + '/proxy/'
 export const UPLOAD_URL = DOMAIN + '/upload'
 export const STATIC_URL = DOMAIN + '/static'
-export const COOKIE_DOMAIN = production ? '.jd.com' : 'localhost'
+export const COOKIE_DOMAIN = production ? 'domain.com' : 'localhost'
 export const COOKIE_EXPIRES = '1M'
+export const BASE64_SALT = 'mockon_base64_salt'
 export const HTTP_METHOD = [
   'GET',
   'POST',

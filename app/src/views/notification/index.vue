@@ -1,8 +1,8 @@
 <template>
   <el-row type="flex">
-    <el-col :span="14" :offset="5">
+    <el-col v-if="notifications.length > 0" :span="14" :offset="5">
       <h4>全部消息</h4>
-      <ul v-if="notifications.length > 0" class="notifications">
+      <ul class="notifications">
         <li class="notification" v-for="notification in notifications" :key="notification.id">
           <router-link :to="{ name: 'user', params: { username: notification.user.username } }">
             {{ notification.author | displayName }}
@@ -16,15 +16,15 @@
         </li>
       </ul>
     </el-col>
+    <el-nodata v-else message="暂无消息"></el-nodata>
   </el-row>
-  </section>
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
-  import ElButton from "../../../node_modules/element-ui/packages/button/src/button";
+  import ElNodata from '../../components/nodata.vue'
 
   export default{
-    components: { ElButton },
+    components: { ElNodata },
     computed: mapGetters(['notifications']),
     beforeRouteEnter(to, from, next) {
       next(async (vm) => {

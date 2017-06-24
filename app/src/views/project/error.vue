@@ -1,10 +1,10 @@
 <template>
   <el-form class="el-form-error" :model="error" :rules="rules" ref="error" :inline="true" @submit.native.prevent="handleSubmit">
     <el-form-item prop="name">
-      <el-input type="text" v-model="error.name" placeholder="状态名称(英文)"></el-input>
+      <el-input type="text" v-model="error.name" placeholder="状态名(英文)"></el-input>
     </el-form-item>
     <el-form-item prop="code">
-      <el-input type="text" v-model="error.code" placeholder="状态代码"></el-input>
+      <el-input type="text" v-model="error.code" placeholder="状态码"></el-input>
     </el-form-item>
     <el-form-item class="el-form-item-description" prop="description">
       <el-input type="text" v-model="error.description" placeholder="状态描述"></el-input>

@@ -7,12 +7,7 @@ export default class extends Base {
     let data
     let params = this.get()
     let action = params.action
-    let user = this.userInfo()
     let where = {}
-
-    if (user) {
-      where = { user_id: user.id }
-    }
 
     delete params.action
 
@@ -41,7 +36,8 @@ export default class extends Base {
   }
 
   async postAction() {
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
     let user = this.userInfo()
 
@@ -53,11 +49,10 @@ export default class extends Base {
 
     data.user_id = user.id
     data.required = data.required ? 1 : 0
-    data.id = await this.modelInstance.add(data)
+    data.id = await model.add(data)
 
     if (data.id) {
-      let projectModelInstance = this.model('project')
-      let project = await projectModelInstance.where({ id: data.project_id }).find()
+      let project = await this.model('project').setRelation(false).db(model.db()).where({ id: data.project_id }).find()
 
       await this.createLogger({
         description: `添加了项目【${project.name}】参数【${data.name}】`,
@@ -72,18 +67,14 @@ export default class extends Base {
     if (!this.id) {
       return this.fail('params error')
     }
-    let pk = await this.modelInstance.getPk()
-    let param = await this.modelInstance.where({ [pk]: this.id }).find()
 
-    if (!await this.memberOf(param.project_id)) {
-      return this.fail('NOT_MEMBER')
-    }
-
-    let rows = await this.modelInstance.where({ [pk]: this.id }).delete()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
+    let param = await model.where({ [pk]: this.id }).find()
+    let rows = await model.where({ [pk]: this.id }).delete()
 
     if (rows > 0) {
-      let projectModelInstance = this.model('project')
-      let project = await projectModelInstance.where({ id: param.project_id }).find()
+      let project = await this.model('project').setRelation(false).db(model.db()).where({ id: param.project_id }).find()
 
       await this.createLogger({
         description: `删除了项目【${project.name}】参数【${param.name}】`,
@@ -99,7 +90,8 @@ export default class extends Base {
       return this.fail('params error')
     }
 
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
 
     delete data[pk]
@@ -116,11 +108,10 @@ export default class extends Base {
 
     data.required = data.required ? 1 : 0
 
-    let rows = await this.modelInstance.where({ [pk]: this.id }).update(data)
+    let rows = await model.where({ [pk]: this.id }).update(data)
 
     if (rows > 0) {
-      let projectModelInstance = this.model('project')
-      let project = await projectModelInstance.where({ id: data.project_id }).find()
+      let project = await this.model('project').setRelation(false).db(model.db()).where({ id: data.project_id }).find()
 
       await this.createLogger({
         description: `更新了项目【${project.name}】参数【${data.name}】信息`,

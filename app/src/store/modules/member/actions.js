@@ -28,17 +28,6 @@ export async function fetchMember({ commit }, payload) {
   return result.body
 }
 
-export async function inviteMember({ commit }, payload) {
-  let result = await Vue.http.post('member', payload)
-  let data = result.body.data
-
-  if (result.body.code === 0) {
-    commit(types.CREATE_MEMBER, data)
-  }
-
-  return result.body
-}
-
 export async function createMember({ commit }, payload) {
   let result = await Vue.http.post('member', payload)
   let data = result.body.data

@@ -8,19 +8,21 @@
         <ul class="modules">
           <li v-for="module in modules" class="module">
             <h3 class="module-name">
-              {{ module.name }}
+              <i class="fa fa-angle-right"></i>{{ module.name }}
               <a href="javascript:;" @click="handleDelete(module)">删除</a>
               <a href="javascript:;" @click="handleUpdate(module)">编辑</a>
-              <router-link :to="{ name: 'project-api-new', params: { code: project.code, module_id: module.id } }">新增接口</router-link>
+              <router-link :to="{ name: 'project-api-new', params: { code: project.code, module_id: base64Encode(module.id) } }">新增接口</router-link>
             </h3>
             <ul v-if="module.api && module.api.length > 0" class="apis">
               <li v-for="api in module.api" class="api">
                 <el-http-method :method="api.method"></el-http-method>
-                {{ api.name }}
-                {{ project.base_url + api.path }}
+                <router-link title="查看文档" class="link-document" target="_blank" :to="{ name: 'document-view', params: { id: base64Encode(api.id) } }">
+                  {{ api.name }}
+                  {{ api.url }}
+                </router-link>
                 <a href="javascript:;" @click="handleApiDelete(api)">删除</a>
-                <router-link :to="{ name: 'project-api-edit', params: { code: project.code, id: api.id } }">编辑</router-link>
-                <router-link :to="{ name: 'document-view', params: { id: api.id } }">查看文档</router-link>
+                <router-link :to="{ name: 'project-api-edit', params: { code: project.code, id: base64Encode(api.id) } }">编辑</router-link>
+                <a href="javascript:;" @click="handleApiDuplicate(api)">复制</a>
               </li>
             </ul>
             <span v-else class="nodata">无接口信息</span>
@@ -44,11 +46,6 @@
         <el-form-item label="分组描述" prop="description">
           <el-input type="textarea" :autosize="{ minRows: 2, maxRows: 2 }" v-model="module.description"></el-input>
         </el-form-item>
-        <el-form-item prop="status">
-          <el-select v-model="module.status" placeholder="状态">
-            <el-option v-for="status in statusMap" :key="status.value" :label="status.text" :value="status.value"></el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item>
           <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存</el-button>
         </el-form-item>
@@ -58,7 +55,7 @@
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
-  import { showNotify, showConfirm } from '../../utils'
+  import { showNotify, showConfirm, base64Encode } from '../../utils'
   import ElHttpMethod from '../../components/http-method.vue'
   import ElNodata from '../../components/nodata.vue'
 
@@ -72,16 +69,12 @@
         title: '',
         dialogVisible: false,
         disabled: false,
-        statusMap: [
-          { text: '开发中', value: '0' },
-          { text: '使用中', value: '1' }
-        ],
+        base64Encode,
         module: {
           id: '',
           name: '',
           code: '',
-          description: '',
-          status: 0
+          description: ''
         },
         rules: {
           name: [
@@ -105,7 +98,8 @@
         'createModule',
         'deleteModule',
         'updateModule',
-        'deleteApi'
+        'deleteApi',
+        'duplicateApi'
       ]),
       handleCreate() {
         this.title = '新增分组'
@@ -113,8 +107,7 @@
           id: '',
           name: '',
           code: '',
-          description: '',
-          status: 0
+          description: ''
         }
         this.dialogVisible = true
       },
@@ -134,6 +127,15 @@
           let result = await ctx.deleteApi(api)
           showNotify(ctx, result)
         })
+      },
+      async handleApiDuplicate(api) {
+        let result
+        let data = JSON.parse(JSON.stringify(api))
+
+        data.name = data.name + '_copy'
+        result = await this.duplicateApi(data)
+
+        showNotify(this, result)
       },
       handleSubmit() {
         this.$refs.module.validate(async(valid) => {
@@ -180,10 +182,10 @@
       }
     }
 
-    h3 {
+    .module-name {
       margin-bottom: 10px;
-      font-weight: 400;
       font-size: 14px;
+      font-weight: 400;
       overflow: hidden;
 
       a {
@@ -198,6 +200,10 @@
         &:hover {
           color: #20a0ff;
         }
+      }
+
+      .fa {
+        color: #999;
       }
     }
 
@@ -232,6 +238,21 @@
       a {
         display: inline-block;
       }
+
+      .link-document {
+        color: #20a0ff;
+        text-decoration: underline;
+      }
+    }
+
+    .el-tag {
+      margin: 0;
+    }
+
+    .link-document {
+      display: inline-block;
+      margin: 0 0 0 5px;
+      color: #333;
     }
 
     a {

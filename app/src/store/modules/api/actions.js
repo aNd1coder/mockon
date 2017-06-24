@@ -1,5 +1,10 @@
 import Vue from 'vue'
 import * as types from './mutation-types'
+import {
+  APPEND_MODULE_API,
+  DELETE_MODULE_API,
+  UPDATE_MODULE_API
+} from '../../modules/module/mutation-types'
 
 export async function fetchApis({ commit }, payload) {
   let result = await Vue.http.get('api', { params: payload })
@@ -34,6 +39,19 @@ export async function createApi({ commit }, payload) {
 
   if (result.body.code === 0) {
     commit(types.CREATE_API, data)
+    commit(APPEND_MODULE_API, data)
+  }
+
+  return result.body
+}
+
+export async function duplicateApi({ commit }, payload) {
+  let result = await Vue.http.post('api', payload, { params: { action: 'duplicate' } })
+  let data = result.body.data
+
+  if (result.body.code === 0) {
+    commit(types.CREATE_API, data)
+    commit(APPEND_MODULE_API, data)
   }
 
   return result.body
@@ -44,6 +62,7 @@ export async function deleteApi({ commit }, payload) {
 
   if (result.body.code === 0) {
     commit(types.DELETE_API, payload)
+    commit(DELETE_MODULE_API, payload)
   }
 
   return result.body
@@ -54,6 +73,7 @@ export async function updateApi({ commit }, payload) {
 
   if (result.body.code === 0) {
     commit(types.UPDATE_API, payload)
+    commit(UPDATE_MODULE_API, payload)
   }
 
   return result.body

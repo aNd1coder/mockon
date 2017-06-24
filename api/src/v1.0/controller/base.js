@@ -2,14 +2,9 @@
 
 let userInfo = {}
 let logModelInstance
-let projectModelInstance
 let memberModelInstance
 
 export default class extends think.controller.rest {
-  baseUrl = process.env.NODE_ENV === 'production'
-    ? 'http://mockon.jd.com'
-    : 'http://127.0.0.1:8088'
-
   async __before() {
     let method = this.http.method
     let param = this.param()
@@ -63,12 +58,19 @@ export default class extends think.controller.rest {
   }
 
   async ownerOf(project) {
+    let projectId
+    let members
+
     if (typeof project === 'number') {
-      projectModelInstance = this.model('project')
-      project = await projectModelInstance.where({ id: project }).find()
+      projectId = project
+    } else {
+      projectId = project.id
     }
 
-    return userInfo.id === project.user_id
+    memberModelInstance = this.model('member')
+    members = await memberModelInstance.where({ project_id: projectId, user_id: userInfo.id, is_owner: 1 }).select()
+
+    return members.length > 0
   }
 
   async memberOf(project_id) {

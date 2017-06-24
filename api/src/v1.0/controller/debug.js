@@ -57,8 +57,9 @@ export default class extends Base {
     if (!this.id) {
       return this.fail('params error')
     }
-    let pk = await this.modelInstance.getPk()
-    let rows = await this.modelInstance.where({ [pk]: this.id }).delete()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
+    let rows = await model.where({ [pk]: this.id }).delete()
     return this.success({ affectedRows: rows })
   }
 
@@ -66,7 +67,8 @@ export default class extends Base {
     if (!this.id) {
       return this.fail('params error')
     }
-    let pk = await this.modelInstance.getPk()
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
     let data = this.post()
 
     delete data[pk]
@@ -78,7 +80,7 @@ export default class extends Base {
     if (think.isEmpty(data)) {
       return this.fail('data is empty')
     }
-    await this.modelInstance.where({ [pk]: this.id }).update(data)
+    await model.where({ [pk]: this.id }).update(data)
     return this.success(data)
   }
 }

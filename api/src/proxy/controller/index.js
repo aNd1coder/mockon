@@ -34,13 +34,13 @@ export default class extends think.controller.base {
         return this.fail(err)
       } else {
         text = response.text
-        text = text.replace(/\r\n/g, '')
+        text = text.replace(/[\r\n]/g, '')
 
         if (!text.startsWith('{')) {
-          text = text.substring(text.indexOf('(') + 1, text.length - 1)
+          text = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1)
         }
 
-        return this.json(JSON.parse(text))
+        return this.json(text)
       }
     }
   }
