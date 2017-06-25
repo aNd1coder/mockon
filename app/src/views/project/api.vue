@@ -139,6 +139,7 @@
       api: {
         handler(api) {
           this.model = JSON.parse(JSON.stringify(api))
+          this.selectTab(true)
         },
         deep: true
       }
@@ -224,11 +225,10 @@
 
             showNotify(this, result, ctx => {
               if (ctx.$route.params.id) {
-                ctx.selectTab(true)
               } else {
                 setTimeout(() => {
-                  ctx.$router.push({ name: 'project-api-edit', params: { code: ctx.project.code, id: result.data.id } })
-                }, 200)
+                  ctx.$router.push({ name: 'project-api-edit', params: { code: ctx.project.code, id: base64Encode(result.data.id) } })
+                }, 500)
               }
             })
           } else {
@@ -238,14 +238,11 @@
       },
       selectTab(last) {
         let index = 0, count
-
         if (this.api.response && this.api.response.length > 0) {
           count = this.api.response.length
-
           if (last === true) {
             index = count - 1
           }
-
           this.editableTabsValue = this.api.response[index].id + ''
         } else {
           this.editableTabsValue = 'new'
@@ -269,8 +266,6 @@
             let result = await this.fetchModule({ id: module_id })
 
             if (result.code === 0 && result.data.id) {
-              this.editableTabsValue = 'new'
-
               this.model = JSON.parse(JSON.stringify(this.newApi))
               this.model.module_id = module_id
             }

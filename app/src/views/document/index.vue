@@ -98,7 +98,7 @@
       <div class="body-inner">
         <div class="document-header">
           <i class="fa fa-align-justify" @click="withSummary = !withSummary"></i>
-          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: api.id } }" class="fa fa-pencil-square-o"> 编辑接口</router-link>
+          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: base64Encode(api.id) } }" class="fa fa-pencil-square-o"> 编辑接口</router-link>
         </div>
         <div class="page-wrapper">
           <div class="page-inner">
@@ -106,7 +106,7 @@
               <h1>{{ api.name }}
                 <el-tag type="gray">{{ statusMap[api.status] }}</el-tag>
               </h1>
-              <blockquote>{{ api.description }}</blockquote>
+              <blockquote v-html="marked(api.description)"></blockquote>
               <template v-if="api.developer">
                 <h3>接口负责人</h3>
                 <p>{{ api.developer }}</p>

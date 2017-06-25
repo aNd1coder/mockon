@@ -7,7 +7,7 @@
           <span class="title">{{ menu.title }}</span>
         </router-link>
       </div>
-      <i class="fa icon-collapse" @click="collapse = !collapse" :title="collapse ? '展开':'折叠'"></i>
+      <i class="fa icon-collapse" @click="handleCollapse" :title="collapse ? '展开':'折叠'"></i>
     </div>
     <div class="col-main">
       <transition>
@@ -51,7 +51,8 @@
     },
     computed: mapGetters(['project']),
     beforeRouteEnter({ params: { code } }, from, next) {
-      next(async(vm) => {
+      next(async (vm) => {
+        vm.collapse = localStorage.getItem('project_layout_sidebar_collapse') === '0'
         await vm.fetchProject({ code })
 
         if (!vm.project.id) {
@@ -59,7 +60,14 @@
         }
       })
     },
-    methods: mapActions(['fetchProject'])
+    methods: {
+      ...mapActions(['fetchProject']),
+      handleCollapse() {
+        this.collapse = !this.collapse
+
+        localStorage.setItem('project_layout_sidebar_collapse', this.collapse ? '0' : '1')
+      }
+    }
   }
 </script>
 <style lang="scss" scoped>
