@@ -28,7 +28,7 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       content: '\f09b';
-      color: #e5e5e5;
+      color: #e6ebf1;
       transform: translate(-50%, -50%);
     }
 

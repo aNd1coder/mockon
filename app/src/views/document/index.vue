@@ -31,9 +31,8 @@
           <el-tooltip class="item" effect="dark" content="可按接口地址、请求方法、请求方式搜索" placement="top">
             <el-input v-model="keyword" placeholder="关键词..." icon="search"></el-input>
           </el-tooltip>
-          <ul v-if="debugs.length > 0" class="debugs">
-            <li v-for="debug in debugs"
-                v-if="filterDebug(debug)"
+          <ul v-if="filteredDebugs.length > 0" class="debugs">
+            <li v-for="debug in filteredDebugs"
                 class="debug" @click="handleDebugClick(debug)">
               <el-http-method :method="parseDebugData(debug).method"></el-http-method>
               {{ parseDebugData(debug).url }}
@@ -94,8 +93,8 @@
         </el-col>
       </el-row>
     </div>
-    <div v-if="api && api.id" class="document-body" v-loading.body="!api" element-loading-text="加载中">
-      <div class="body-inner">
+    <div class="document-body" v-loading.body="loading" element-loading-text="加载中">
+      <div v-if="api && api.id" class="body-inner">
         <div class="document-header">
           <i class="fa fa-align-justify" @click="withSummary = !withSummary"></i>
           <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: base64Encode(api.id) } }" class="fa fa-pencil-square-o"> 编辑接口</router-link>
@@ -108,10 +107,10 @@
               </h1>
               <blockquote v-html="marked(api.description)"></blockquote>
               <template v-if="api.developer">
-                <h3>接口负责人</h3>
+                <h3>负责人</h3>
                 <p>{{ api.developer }}</p>
               </template>
-              <h3>URL</h3>
+              <h3>请求 URL</h3>
               <el-tag type="gray"><el-http-method :method="api.method"></el-http-method>{{ api.url }}</el-tag>
 
               <template v-for="response in api.response">
@@ -202,6 +201,7 @@
         search: '',
         keyword: '',
         body: '',
+        loading: true,
         disabled: false,
         response: {},
         form: {
@@ -255,6 +255,21 @@
             'with-debugger': this.withDebugger,
           }
         ]
+      },
+      filteredDebugs() {
+        return this.debugs.filter(debug => {
+          let d = this.parseDebugData(debug)
+          let fields = ['method', 'url', 'type']
+          let match = false
+
+          for (let field of fields) {
+            if (d[field].toLowerCase().indexOf(this.keyword.toLowerCase()) !== -1) {
+              match = true
+            }
+          }
+
+          return match
+        })
       }
     },
     beforeRouteEnter(to, from, next) {
@@ -266,7 +281,7 @@
     watch: {
       $route (to, from) {
         if (to.name === from.name) {
-          this.loadData()
+          this.loadData(true)
         }
       }
     },
@@ -429,13 +444,25 @@
         editor.setValue(this.body)
         editor.clearSelection()
       },
-      async loadData() {
+      async loadData(reload) {
         let id = base64Decode(this.$route.params.id)
 
+        this.loading = true
+
         await this.fetchApi({ id })
-        await this.fetchModules({ project_id: this.api.project_id })
+
+        if (reload) {
+          this.loading = false
+        }
+
         await this.fetchFields({ project_id: this.api.project_id })
         await this.fetchErrors({ project_id: this.api.project_id, api_id: this.api.id })
+
+        if (!reload) {
+          await this.fetchModules({ project_id: this.api.project_id })
+
+          this.loading = false
+        }
       },
       formattedBody (response) {
         let body = response.body
@@ -454,19 +481,6 @@
 
         for (let field of fields) {
           if (api[field].toLowerCase().indexOf(this.search.toLowerCase()) !== -1) {
-            match = true
-          }
-        }
-
-        return match
-      },
-      filterDebug(debug) {
-        let d = this.parseDebugData(debug)
-        let fields = ['method', 'url', 'type']
-        let match = false
-
-        for (let field of fields) {
-          if (d[field].toLowerCase().indexOf(this.keyword.toLowerCase()) !== -1) {
             match = true
           }
         }
@@ -492,8 +506,8 @@
   }
   .el-tag--gray {
     padding: 0 10px;
-    background-color: #f7f7f7;
-    border-color: #f7f7f7;
+    background-color: #f6f8fa;
+    border-color: #f6f8fa;
     font-size: 14px;
   }
   .document-debugger {
@@ -669,7 +683,7 @@
 
         a, .module-name {
           display: block;
-          padding: 6px 15px;
+          padding: 5px 15px 0;
           color: #364149;
           text-overflow: ellipsis;
           overflow: hidden;
@@ -677,6 +691,7 @@
         }
 
         .module-name {
+          padding-top: 10px;
           color: #7f8c8d;
           opacity: 0.6;
           cursor: not-allowed;
@@ -1035,7 +1050,7 @@
       margin: 0;
       padding: .85em 1em;
       margin-bottom: 1.275em;
-      background: #f7f7f7
+      background-color: #f6f8fa
     }
     pre > code {
       display: inline;
@@ -1055,7 +1070,7 @@
       padding: .2em .5em;
       margin: 0;
       font-size: .85em;
-      background-color: #f7f7f7
+      background-color: #f6f8fa
     }
     code:after, code:before {
       letter-spacing: -.2em;
@@ -1076,11 +1091,13 @@
       list-style-type: lower-roman
     }
     blockquote {
-      margin: 0;
-      margin-bottom: .85em;
-      padding: 0 15px;
+      margin: 2em 0;
+      padding: 0 15px 0 20px;
       color: #858585;
-      border-left: 4px solid #e5e5e5
+      border-left: 4px solid #dfe2e5
+    }
+    blockquote p {
+      margin-left: 0;
     }
     blockquote:first-child {
       margin-top: 0
@@ -1171,16 +1188,6 @@
     }
     a {
       color: #42b983;
-      font-weight: 600;
-    }
-    blockquote {
-      margin: 2em 0;
-      padding-left: 20px;
-      border-left: 4px solid #eee;
-    }
-    blockquote p {
-      font-weight: 600;
-      margin-left: 0;
     }
     iframe {
       margin: 1em 0;

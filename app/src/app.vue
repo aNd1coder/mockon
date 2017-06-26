@@ -34,11 +34,6 @@
               <i class="fa fa-sign-in"></i>登录
             </router-link>
           </el-menu-item>
-          <el-menu-item index="2">
-            <router-link :to="{ name: 'signup' }">
-              <i class="fa fa-user-plus"></i>注册
-            </router-link>
-          </el-menu-item>
         </el-menu>
       </div>
     </header>
@@ -296,9 +291,10 @@
   .project-plate {
     position: relative;
     margin-bottom: 20px;
-    border: 1px solid #e5e5e5;
+    border: 1px solid #d1d5da;
     border-radius: 5px;
     transition: all 0.3s;
+    overflow: hidden;
 
     &, a {
       font-size: 12px;
@@ -340,7 +336,8 @@
   }
   .project-plate-header {
     position: relative;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid #d1d5da;
+    background-color: #f6f8fa;
 
     .name {
       margin: 0;

@@ -203,7 +203,7 @@
       }
 
       .fa {
-        color: #999;
+        color: inherit;
       }
     }
 
