@@ -1,5 +1,5 @@
 <template>
-  <el-row v-loading.body="loading" element-loading-text="加载中">
+  <el-row v-loading.fullscreen.lock="loading">
     <el-col :span="24">
       <div class="page-header">
         <div class="logo">
@@ -51,7 +51,7 @@
                   </router-link>
                 </li>
                 <li v-for="member in project.members" class="member">
-                  <el-user-block :user="member" :size="50" :nameVisible="false"></el-user-block>
+                  <el-user-block :user="member" :size="40" :nameVisible="false"></el-user-block>
                 </li>
               </ul>
             </el-col>
@@ -88,7 +88,9 @@
     },
     beforeRouteEnter(to, from, next) {
       next(async (vm) => {
-        vm.loadData()
+        vm.loading = true
+        await vm.loadData()
+        vm.loading = false
       })
     },
     methods: {

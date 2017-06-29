@@ -1,9 +1,9 @@
 <template>
-  <div :class="wrapClass">
+  <div :class="wrapClass" v-loading.fullscreen.lock="loading">
     <div class="document-summary">
       <div class="document-search-input">
         <i class="fa fa-search"></i>
-        <el-tooltip class="item" effect="dark" content="可按接口名称、描述、URL、请求方式搜索" placement="right">
+        <el-tooltip class="item" effect="dark" content="可按接口名称、URL、请求方式搜索" placement="right">
           <input type="text" v-model="search" placeholder="关键词...">
         </el-tooltip>
       </div>
@@ -93,7 +93,7 @@
         </el-col>
       </el-row>
     </div>
-    <div class="document-body" v-loading.body="loading" element-loading-text="加载中">
+    <div class="document-body">
       <div v-if="api && api.id" class="body-inner">
         <div class="document-header">
           <i class="fa fa-align-justify" @click="withSummary = !withSummary"></i>
@@ -102,12 +102,14 @@
         <div class="page-wrapper">
           <div class="page-inner">
             <section class="normal markdown-section">
-              <h1>{{ api.name }}
-                <el-tag type="gray">{{ statusMap[api.status] }}</el-tag>
-              </h1>
+              <h1>{{ api.name }}<el-tag type="gray">{{ statusMap[api.status] }}</el-tag></h1>
+              <div class="page-meta">
+                <el-user-block :user="api.user" :size="20"></el-user-block>
+                {{ api.modified_at | dateformat }}编辑过该接口文档
+              </div>
               <blockquote v-html="marked(api.description)"></blockquote>
               <template v-if="api.developer">
-                <h3>负责人</h3>
+                <h3>接口负责人</h3>
                 <p>{{ api.developer }}</p>
               </template>
               <h3>请求 URL</h3>
@@ -166,6 +168,7 @@
     PROXY_URL
 } from '../../config'
   import ElHttpMethod from '../../components/http-method.vue'
+  import ElUserBlock from '../../components/user-block.vue'
   import ElNodata from '../../components/nodata.vue'
   import {
     jsonFormat,
@@ -178,6 +181,7 @@
   export default{
     components: {
       ElHttpMethod,
+      ElUserBlock,
       ElNodata
     },
     data() {
@@ -465,7 +469,7 @@
         }
       },
       formattedBody (response) {
-        let body = response.body
+        let body = response.body || {}
 
         body = JSON.parse(body)
 
@@ -476,7 +480,7 @@
         return jsonFormat(body, this.fields, response.jsonp_callback)
       },
       filterApi(api) {
-        let fields = ['name', 'description', 'url', 'method']
+        let fields = ['name', 'url', 'method']
         let match = false
 
         for (let field of fields) {
@@ -829,6 +833,7 @@
       color: #ccc;
       font-size: 14px;
       cursor: pointer;
+      vertical-align: middle;
 
       &:hover {
         color: #444;
@@ -864,6 +869,22 @@
     width: 90%;
     margin: 0 auto;
     padding: 20px 0 100px;
+
+    .page-meta {
+      height: 22px;
+      line-height: 22px;
+      font-size: 12px;
+      overflow: hidden;
+      color: #999;
+    }
+    .el-user-block {
+      vertical-align: 1px;
+    }
+    .el-user-avatar, .el-user-name {
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0;
+    }
 
     .normal {
       pre, code {
@@ -1092,8 +1113,8 @@
     }
     blockquote {
       margin: 2em 0;
-      padding: 0 15px 0 20px;
-      color: #858585;
+      padding: 0 15px 0 10px;
+      color: #666;
       border-left: 4px solid #dfe2e5
     }
     blockquote p {
@@ -1159,9 +1180,8 @@
       content: none;
       letter-spacing: 0.05em;
     }
-
     h1 {
-      margin: 0 0 1em;
+      margin: 0;
     }
     h2 {
       margin: 45px 0 0.8em;

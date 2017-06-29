@@ -1,7 +1,11 @@
 <template>
   <span @click="handleRoute" class="el-user-block">
-    <span class="el-user-avatar"><img :src="user.avatar | imgformat" :width="size" :title="user | displayName"/></span>
-    <span v-if="nameVisible" class="el-user-name">{{ user | displayName }}</span>
+    <span class="el-user-avatar" :style="{ width: size + 'px',height: size + 'px','font-size': size + 'px' }">
+      <img :src="user.avatar | imgformat" :width="size" :title="user | displayName"/>
+    </span>
+    <span v-if="nameVisible" class="el-user-name">
+      <slot name="name">{{ user | displayName }}</slot>
+    </span>
   </span>
 </template>
 <style lang="scss" scoped>
@@ -9,12 +13,16 @@
     display: inline-block;
     text-align: center;
     cursor: pointer;
+
+    &:hover {
+      &, .el-user-name {
+        color: #20a0ff;
+      }
+    }
   }
   .el-user-avatar {
     position: relative;
     display: block;
-    width: 40px;
-    height: 40px;
     margin: 0 auto;
     border-radius: 50%;
     overflow: hidden;
@@ -30,6 +38,7 @@
       content: '\f09b';
       color: #e6ebf1;
       transform: translate(-50%, -50%);
+      font-size: inherit;
     }
 
     img {

@@ -12,7 +12,7 @@
         <span v-else>{{ project.name.charAt(0) }}</span>
       </router-link>
     </div>
-    <div class="project-plate-content" v-html="marked(project.description)"></div>
+    <div class="project-plate-content" v-html="marked(project.description || project.name)"></div>
     <div class="project-plate-footer">
       <el-user-block v-for="member in project.members" :key="member.id" :size="20" :user="member" :nameVisible="false"></el-user-block>
       <router-link :to="{ name: 'project-member', params: { code: project.code } }">

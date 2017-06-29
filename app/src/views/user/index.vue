@@ -1,5 +1,5 @@
 <template>
-  <el-row v-if="user" class="user-index" v-loading.fullscreen.lock="loading" element-loading-text="加载中">
+  <el-row v-if="user" class="user-index" v-loading.fullscreen.lock="loading">
     <div class="page-header">
       <div :class="'el-user-block' + (isMe ? (avatar ? '':' active'):'')">
         <div class="el-user-avatar">
@@ -258,7 +258,7 @@
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           content: '\f09b';
-          color: #e5e5e5;
+          color: #e6ebf1;
           transform: translate(-50%, -50%);
         }
 

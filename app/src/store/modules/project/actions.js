@@ -48,3 +48,13 @@ export async function updateProject({ commit }, payload) {
 
   return result.body
 }
+
+export async function updateProjectSwagger({ commit }, payload) {
+  let result = await Vue.http.put('project/' + payload.id, payload, { params: { action: 'update-swagger' } })
+
+  if (result.body.code === 0) {
+    commit(types.UPDATE_PROJECT, payload)
+  }
+
+  return result.body
+}

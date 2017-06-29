@@ -1,5 +1,5 @@
 <template>
-  <section class="project-member" v-loading.body="loading" element-loading-text="加载中">
+  <section class="project-member" v-loading.fullscreen.lock="loading">
     <div class="page-header">
       <h1 class="pull-left">成员管理</h1>
     </div>
@@ -47,6 +47,7 @@
     computed: mapGetters(['session', 'users', 'project', 'members']),
     beforeRouteEnter(to, from, next) {
       next(async (vm) => {
+        vm.loading = true
         await vm.fetchMembers({ project_id: vm.project.id })
         vm.loading = false
       })
@@ -154,14 +155,6 @@
         transform: translate(-50%, -50%);
       }
     }
-    .el-user-avatar {
-      width: 80px;
-      height: 80px;
-
-      &:before {
-        font-size: 95px;
-      }
-    }
     .el-user-name {
       margin-top: 10px;
       font-size: 14px;
@@ -173,9 +166,9 @@
       line-height:138px;
       margin-top: 20px;
       font-size: 40px;
-      border: 1px dashed #d9d9d9;
+      border: 1px dashed #e6ebf1;
       border-radius: 5px;
-      color: #d9d9d9;
+      color: #e6ebf1;
       cursor: pointer;
 
       &:hover {

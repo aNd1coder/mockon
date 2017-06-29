@@ -83,7 +83,7 @@ export default class extends Base {
       let fieldModelInstance = self.model('field').setRelation(false).db(model.db())
       let apis = await apiModelInstance.where({ module_id: self.id }).select()
 
-      for (let api in apis) {
+      for (let api of apis) {
         await paramModelInstance.where({ api_id: api.id }).delete()
         await fieldModelInstance.where({ api_id: api.id }).delete()
         await responseModelInstance.where({ api_id: api.id }).delete()

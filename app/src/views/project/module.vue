@@ -1,14 +1,15 @@
 <template>
-  <section>
+  <section v-loading.fullscreen.lock="loading">
     <div class="page-header">
       <h1 class="pull-left">接口管理</h1>
+      <el-button v-if="project.swagger_url" class="pull-right" type="default" :disabled="disabled" :loading="disabled" @click="handleUpdateSwagger">更新 Swagger</el-button>
     </div>
     <el-row>
       <el-col :span="24">
         <ul class="modules">
           <li v-for="module in modules" class="module">
             <h3 class="module-name">
-              <i class="fa fa-angle-right"></i>{{ module.name }}
+              <i class="fa fa-angle-right"></i>{{ module.name }}({{ module.api.length }})
               <a href="javascript:;" @click="handleDelete(module)">删除</a>
               <a href="javascript:;" @click="handleUpdate(module)">编辑</a>
               <router-link :to="{ name: 'project-api-new', params: { code: project.code, module_id: base64Encode(module.id) } }">新增接口</router-link>
@@ -17,8 +18,8 @@
               <li v-for="api in module.api" class="api">
                 <el-http-method :method="api.method"></el-http-method>
                 <router-link title="查看文档" class="link-document" target="_blank" :to="{ name: 'document-view', params: { id: base64Encode(api.id) } }">
-                  {{ api.name }}
-                  {{ api.url }}
+                  <span class="api-name">{{ api.name }}</span>
+                  <span class="api-url">{{ api.url }}</span>
                 </router-link>
                 <a href="javascript:;" @click="handleApiDelete(api)">删除</a>
                 <router-link :to="{ name: 'project-api-edit', params: { code: project.code, id: base64Encode(api.id) } }">编辑</router-link>
@@ -68,6 +69,7 @@
       return {
         title: '',
         dialogVisible: false,
+        loading: true,
         disabled: false,
         base64Encode,
         module: {
@@ -89,7 +91,9 @@
     computed: mapGetters(['session', 'project', 'modules']),
     beforeRouteEnter(to, from, next) {
       next(async(vm) => {
+        vm.loading = true
         await vm.fetchModules({ project_id: vm.project.id })
+        vm.loading = false
       })
     },
     methods: {
@@ -99,8 +103,14 @@
         'deleteModule',
         'updateModule',
         'deleteApi',
-        'duplicateApi'
+        'duplicateApi',
+        'updateProjectSwagger'
       ]),
+      async handleUpdateSwagger() {
+        let result = await this.updateProjectSwagger(this.project)
+        await this.fetchModules({ project_id: this.project.id })
+        showNotify(this, result)
+      },
       handleCreate() {
         this.title = '新增分组'
         this.module = {
@@ -240,8 +250,11 @@
       }
 
       .link-document {
-        color: #20a0ff;
         text-decoration: underline;
+
+        &, .api-url {
+          color: #20a0ff;
+        }
       }
     }
 
@@ -265,5 +278,8 @@
         color: #20a0ff;
       }
     }
+  }
+  .api-url {
+    color: #999;
   }
 </style>

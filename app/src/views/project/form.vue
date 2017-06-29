@@ -11,6 +11,9 @@
       <el-form-item label="基础路径" prop="base_url">
         <el-input type="text" v-model="model.base_url" placeholder="http://api.domain.com/v1"></el-input>
       </el-form-item>
+      <el-form-item label="Swagger Docs API（批量导入接口数据）" prop="swagger_url">
+        <el-input type="text" v-model="model.swagger_url" placeholder="http://petstore.swagger.io/v2/swagger.json"></el-input>
+      </el-form-item>
       <el-form-item label="编码类型" prop="enctype">
         <el-select v-model="model.enctype" placeholder="请选择编码类型">
           <el-option v-for="enctype in FORM_ENCTYPE" :key="enctype" :label="enctype" :value="enctype"></el-option>
@@ -99,16 +102,15 @@
           ],
           code: [
             { required: true, message: '请输入项目代码', trigger: 'blur' }
-          ],
-          base_url: [
-            { required: true, message: '请输入基础路径', trigger: 'blur' }
           ]
         }
       }
     },
     computed: mapGetters(['session', 'project']),
     watch: {
-      project: 'loadData'
+      project() {
+        this.loadData()
+      }
     },
     mounted () {
       this.loadData()
@@ -186,7 +188,7 @@
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       content: '\f09b';
-      color: #d9d9d9;
+      color: #e6ebf1;
       transform: translate(-50%, -50%);
     }
 

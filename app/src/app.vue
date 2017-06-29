@@ -181,15 +181,6 @@
       vertical-align: middle;
     }
 
-    .el-user-avatar {
-      width: 30px;
-      height: 30px;
-
-      &:before {
-        font-size: 30px;
-      }
-    }
-
     .avatar {
       display: inline-block;
 
@@ -302,7 +293,6 @@
 
     &:hover {
       border-color: #20a0ff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, .15);
     }
 
     a {
@@ -315,12 +305,12 @@
 
     .fa-plus-circle {
       display: block;
-      height: 128px;
-      line-height: 128px;
+      height: 131px;
+      line-height: 131px;
       margin: 0;
       text-align: center;
       font-size: 50px;
-      color: #e5e5e5;
+      color: #e6ebf1;
 
       &:hover {
         color: #20a0ff;
@@ -332,7 +322,7 @@
   }
   .project-plate-header,
   .project-plate-content {
-    padding: 15px 15px 15px 95px;
+    padding: 10px 15px 10px 95px;
   }
   .project-plate-header {
     position: relative;
@@ -380,7 +370,7 @@
     }
   }
   .project-plate-content {
-    height: 33px;
+    height: 45px;
     line-height: 1.4;
     margin-bottom: 10px;
     color: #999;
@@ -396,24 +386,14 @@
     }
   }
   .project-plate-footer {
-    margin: 15px 15px 15px 95px;
+    margin: 10px 15px 10px 95px;
     color: #666;
     font-size: 0;
     overflow: hidden;
     white-space: nowrap;
 
     .el-user-avatar {
-      width: 20px;
-      height: 20px;
       margin-right: 3px;
-
-      &:before {
-        font-size: 20px;
-      }
-
-      img {
-        border-radius: 50%;
-      }
     }
   }
 </style>

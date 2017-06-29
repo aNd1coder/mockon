@@ -1,5 +1,5 @@
 <template>
-  <section :class="'api-editor-container' + (model && model.id ? ' api-edit':'')" v-loading.body="loading" element-loading-text="加载中">
+  <section :class="'api-editor-container' + (model && model.id ? ' api-edit':'')" v-loading.fullscreen.lock="loading">
     <div class="page-header">
       <h1 class="pull-left">接口信息</h1>
       <el-button v-if="model && model.id" class="pull-right" :plain="true" type="primary">
@@ -25,8 +25,8 @@
           <el-form-item label="接口连接" prop="url">
             <el-input v-model="model.url" placeholder="http:// 或 // 开头"></el-input>
           </el-form-item>
-          <el-form-item label="开发人员" prop="developer">
-            <el-input v-model="model.developer" placeholder="接口开发人员，方便随时联系"></el-input>
+          <el-form-item label="接口负责人" prop="developer">
+            <el-input v-model="model.developer" placeholder="方便随时联系"></el-input>
           </el-form-item>
           <el-form-item label="描述说明" prop="description">
             <el-editor v-model="model.description" :toolbar="toolbar" :on-typing="handleTyping"></el-editor>
@@ -252,29 +252,29 @@
         let id = this.$route.params.id
         let module_id = this.$route.params.module_id
 
-        await this.fetchModules({ project_id: this.project.id })
+        if (this.modules.length == 0) {
+          this.loading = true
+          await this.fetchModules({ project_id: this.project.id })
+          this.loading = false
+        }
 
         if (id) {
+          this.loading = true
+
           id = base64Decode(id)
           await this.fetchApi({ id })
 
           this.model = JSON.parse(JSON.stringify(this.api))
+          this.loading = false
         } else {
           if (module_id) {
             module_id = base64Decode(module_id)
-
-            let result = await this.fetchModule({ id: module_id })
-
-            if (result.code === 0 && result.data.id) {
-              this.model = JSON.parse(JSON.stringify(this.newApi))
-              this.model.module_id = module_id
-            }
+            this.model = JSON.parse(JSON.stringify(this.newApi))
+            this.model.module_id = module_id
           }
         }
 
         this.selectTab()
-
-        this.loading = false
       }
     }
   }

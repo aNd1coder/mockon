@@ -1,5 +1,5 @@
 <template>
-  <el-row :gutter="20" v-loading.fullscreen.lock="loading" element-loading-text="加载中">
+  <el-row :gutter="20" v-loading.fullscreen.lock="loading">
     <el-col class="el-col-search" :span="24">
       <el-input v-model="keyword" placeholder="请输入关键词..." icon="search"></el-select>
       </el-input>
