@@ -252,20 +252,17 @@
         let id = this.$route.params.id
         let module_id = this.$route.params.module_id
 
+        this.loading = true
+
         if (this.modules.length == 0) {
-          this.loading = true
           await this.fetchModules({ project_id: this.project.id })
-          this.loading = false
         }
 
         if (id) {
-          this.loading = true
-
           id = base64Decode(id)
           await this.fetchApi({ id })
 
           this.model = JSON.parse(JSON.stringify(this.api))
-          this.loading = false
         } else {
           if (module_id) {
             module_id = base64Decode(module_id)
@@ -275,6 +272,7 @@
         }
 
         this.selectTab()
+        this.loading = false
       }
     }
   }

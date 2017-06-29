@@ -9,7 +9,7 @@
         <ul class="modules">
           <li v-for="module in modules" class="module">
             <h3 class="module-name">
-              <i class="fa fa-angle-right"></i>{{ module.name }}({{ module.api.length }})
+              <i class="fa fa-angle-right"></i>{{ module.name }}({{ module.api && module.api.length > 0 ? module.api.length : 0 }})
               <a href="javascript:;" @click="handleDelete(module)">删除</a>
               <a href="javascript:;" @click="handleUpdate(module)">编辑</a>
               <router-link :to="{ name: 'project-api-new', params: { code: project.code, module_id: base64Encode(module.id) } }">新增接口</router-link>
