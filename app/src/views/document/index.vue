@@ -136,7 +136,7 @@
                     <div v-html="marked(row.description)"></div>
                   </el-table-column>
                 </el-table>
-                <pre><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code></pre>
+                <pre :ref="'codeview'+response.id" class="code-view"><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code><el-button size="small" @click="handleCollapse(response.id)">折叠</el-button></pre>
               </template>
               <template v-if="errors.length">
                 <h3>状态码</h3>
@@ -407,6 +407,19 @@
       handleDebugDelete(debug) {
         this.deleteDebug(debug)
       },
+      handleCollapse(refId) {
+        let codeView = this.$refs['codeview' + refId]
+
+        if (codeView && codeView.length > 0) {
+          codeView = codeView[0]
+
+          if (codeView.classList.contains('collapse')) {
+            codeView.classList.remove('collapse')
+          } else {
+            codeView.classList.add('collapse')
+          }
+        }
+      },
       querySearch(queryString, cb) {
         let headers = []
         HTTP_HEADERS.forEach(header => {
@@ -575,9 +588,59 @@
   }
   .el-table {
     border-width: 1px;
+  }
+  .code-view {
+    position: relative;
+    margin-top: 20px;
+    transition: all .5s linear;
 
-    + pre {
-      margin-top: 20px;
+    &.collapse {
+      max-height: 100px;
+      overflow: hidden;
+      background: linear-gradient(#f6f8fa 30%, rgba(246, 248, 250, 0)),
+      linear-gradient(rgba(246, 248, 250, 0), #f6f8fa 70%) 0 100%,
+      radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)),
+      radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, .2), rgba(0, 0, 0, 0)) 0 100%;
+      background-repeat: no-repeat;
+      background-color: white;
+      background-size: 100% 200px, 100% 0, 100% 14px, 100% 14px;
+      background-attachment: local, local, scroll, scroll;
+
+      .el-button {
+        & {
+          color: transparent !important;
+
+          &:after {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            content: '展开';
+            color: #1f2d3d;
+            transform: translate(-50%, -50%);
+          }
+        }
+        &:hover {
+          &:after {
+            color: #fff;
+          }
+        }
+      }
+    }
+
+    .el-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border-color: #e4e8f1;
+      background-color: #e4e8f1;
+      border-top-left-radius: 0;
+      border-bottom-right-radius: 0;
+
+      &:hover {
+        border-color: #20a0ff;
+        background-color: #20a0ff;
+        color: #fff;
+      }
     }
   }
   .response-block {
@@ -1223,13 +1286,14 @@
       &.lang-bash:after,
       &.lang-css:after {
         position: absolute;
-        top: 0;
-        right: 0;
-        color: #ccc;
-        text-align: right;
-        font-size: 1em;
+        top: 15px;
+        right: -16px;
+        width: 44px;
         line-height: 15px;
         height: 15px;
+        text-align: center;
+        color: #ccc;
+        font-size: 1em;
         font-weight: 600;
       }
       &.lang-html:after {
