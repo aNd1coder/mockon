@@ -116,27 +116,29 @@
               <el-tag type="gray"><el-http-method :method="api.method"></el-http-method>{{ api.url }}</el-tag>
 
               <template v-for="response in api.response">
-                <h3 :class="'response-block response-block-'+response.type">
-                  {{ response.description }}
-                  <el-button class="pull-right" size="mini" @click="handleDebugger(response)"><i class="fa fa-bug"></i>调试</el-button>
-                </h3>
-                <el-table v-if="response.param.length" :data="response.param" :row-class-name="tableRowClassName">
-                  <el-table-column prop="name" label="名称"></el-table-column>
-                  <el-table-column prop="type" label="类型" inline-template>
-                    <span>{{ row.type + (row.length ? '(' + row.length + ')' : '') }}</span>
-                  </el-table-column>
-                  <el-table-column prop="location" label="位置" inline-template>
-                    <span>{{ PARAM_LOCATION[row.location] }}</span>
-                  </el-table-column>
-                  <el-table-column prop="default_value" label="默认值"></el-table-column>
-                  <el-table-column prop="required" label="必需" inline-template>
-                    <span>{{ (row.required ? '是' : '否') }}</span>
-                  </el-table-column>
-                  <el-table-column prop="description" label="描述" inline-template>
-                    <div v-html="marked(row.description)"></div>
-                  </el-table-column>
-                </el-table>
-                <pre :ref="'codeview'+response.id" class="code-view"><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code><el-button size="small" @click="handleCollapse(response.id)">折叠</el-button></pre>
+                <div :class="'response-block response-block-'+response.type">
+                  <h3 class="response-header">
+                    {{ response.description }}
+                    <el-button class="pull-right" size="mini" @click="handleDebugger(response)"><i class="fa fa-bug"></i>调试</el-button>
+                  </h3>
+                  <el-table v-if="response.param.length" :data="response.param" :row-class-name="tableRowClassName">
+                    <el-table-column prop="name" label="名称"></el-table-column>
+                    <el-table-column prop="type" label="类型" inline-template>
+                      <span>{{ row.type + (row.length ? '(' + row.length + ')' : '') }}</span>
+                    </el-table-column>
+                    <el-table-column prop="location" label="位置" inline-template>
+                      <span>{{ PARAM_LOCATION[row.location] }}</span>
+                    </el-table-column>
+                    <el-table-column prop="default_value" label="默认值"></el-table-column>
+                    <el-table-column prop="required" label="必需" inline-template>
+                      <span>{{ (row.required ? '是' : '否') }}</span>
+                    </el-table-column>
+                    <el-table-column prop="description" label="描述" inline-template>
+                      <div v-html="marked(row.description)"></div>
+                    </el-table-column>
+                  </el-table>
+                  <pre :ref="'codeview'+response.id" class="code-view"><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code><el-button size="small" @click="handleCollapse(response.id)">折叠</el-button></pre>
+                </div>
               </template>
               <template v-if="errors.length">
                 <h3>状态码</h3>
@@ -643,16 +645,27 @@
       }
     }
   }
-  .response-block {
+  .response-header {
     position: relative;
 
     .el-button {
+      display: none;
       position: absolute;
       top: 50%;
       right: 0;
       transform: translateY(-50%);
     }
   }
+  .response-block {
+    position: relative;
+
+    &:hover {
+      .el-button {
+        display: block;
+      }
+    }
+  }
+
   .response {
     .el-tag {
       margin-bottom: 10px;
