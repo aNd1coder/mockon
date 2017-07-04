@@ -47,7 +47,6 @@ export default class extends Base {
     }
 
     data.user_id = user.id
-
     data.id = await model.add(data)
 
     if (data.id) {
@@ -117,7 +116,6 @@ export default class extends Base {
     }
 
     delete data[pk]
-    delete data.user
     delete data.created_at
     delete data.modified_at
 
