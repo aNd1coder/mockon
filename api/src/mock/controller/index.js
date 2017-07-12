@@ -1,10 +1,14 @@
 'use strict'
 
+import querystring from 'querystring'
 import Mockjs from 'mockjs'
 
 export default class extends think.controller.base {
   async indexAction() {
-    let id = this.get('id')
+    let params = this.get()
+    let id = params.id
+
+    delete params.id
 
     id = new Buffer(id, 'base64').toString('utf8').replace('mockon_base64_salt', '')
 
@@ -21,8 +25,17 @@ export default class extends think.controller.base {
       }
 
       if (this.isGet()) {
-        if (data.jsonp_callback) {
-          return this.end(data.jsonp_callback + '(' + data.body + ')')
+        let callback = params.callback
+        let body = JSON.parse(data.body)
+
+
+        delete params.callback
+
+        callback = callback || data.jsonp_callback
+        body = { ...body, ...params }
+
+        if (callback) {
+          return this.end(callback + '(' + JSON.stringify(body) + ')')
         }
       }
 
