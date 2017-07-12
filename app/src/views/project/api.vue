@@ -83,7 +83,7 @@
       return {
         HTTP_METHOD,
         base64Encode,
-        loading: true,
+        loading: false,
         disabled: false,
         activeName: 'basic',
         editableTabsValue: 'new',
@@ -107,6 +107,7 @@
         newApi: {},
         model: {
           id: '',
+          module_id: 0,
           name: '',
           description: '',
           developer: '',
@@ -144,9 +145,14 @@
         deep: true
       }
     },
-    beforeRouteEnter(to, from, next) {
+    beforeRouteEnter({ params: { module_id } }, from, next) {
       next((vm) => {
         vm.model.url = vm.project.base_url
+
+        if (module_id) {
+          vm.model.module_id = base64Decode(module_id)
+        }
+
         vm.newApi = JSON.parse(JSON.stringify(vm.model))
         vm.loadData()
       })
@@ -250,7 +256,6 @@
       },
       async loadData() {
         let id = this.$route.params.id
-        let module_id = this.$route.params.module_id
 
         this.loading = true
 
@@ -264,11 +269,7 @@
 
           this.model = JSON.parse(JSON.stringify(this.api))
         } else {
-          if (module_id) {
-            module_id = base64Decode(module_id)
-            this.model = JSON.parse(JSON.stringify(this.newApi))
-            this.model.module_id = module_id
-          }
+          this.model = JSON.parse(JSON.stringify(this.newApi))
         }
 
         this.selectTab()

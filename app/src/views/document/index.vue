@@ -32,8 +32,7 @@
             <el-input v-model="keyword" placeholder="关键词..." icon="search"></el-input>
           </el-tooltip>
           <ul v-if="filteredDebugs.length > 0" class="debugs">
-            <li v-for="debug in filteredDebugs"
-                class="debug" @click="handleDebugClick(debug)">
+            <li v-for="debug in filteredDebugs" class="debug" @click="handleDebugClick(debug)">
               <el-http-method :method="parseDebugData(debug).method"></el-http-method>
               {{ parseDebugData(debug).url }}
               <i class="fa fa-close" title="删除" @click="handleDebugDelete(debug)"></i>
@@ -113,7 +112,10 @@
                 <p>{{ api.developer }}</p>
               </template>
               <h3>请求 URL</h3>
-              <el-tag type="gray"><el-http-method :method="api.method"></el-http-method>{{ api.url }}</el-tag>
+              <el-tag type="gray">
+                <el-http-method :method="api.method"></el-http-method>
+                <a :href="api.url" target="_blank">{{ api.url }}</a>
+              </el-tag>
 
               <template v-for="response in api.response">
                 <div :class="'response-block response-block-'+response.type">
@@ -528,6 +530,15 @@
     background-color: #f6f8fa;
     border-color: #f6f8fa;
     font-size: 14px;
+
+    a {
+      color: #48576a;
+
+      &:hover {
+        color: #20a0ff;
+        text-decoration: underline;
+      }
+    }
   }
   .document-debugger {
     .el-row {
@@ -742,6 +753,7 @@
     z-index: 1;
     overflow-y: auto;
     width: 300px;
+    padding-bottom: 20px;
     color: #364149;
     border-right: 1px solid rgba(0, 0, 0, .07);
     transition: left 250ms ease;
