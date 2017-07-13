@@ -199,7 +199,6 @@ export default class extends Base {
                 type: (statusCode == 200 ? 'success' : 'error'),
                 description: response.description,
                 enctype: api.produces[0] || 'application/json',
-                is_mockjs: 1,
                 body: '',
                 project_id,
                 api_id,

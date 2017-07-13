@@ -16,10 +16,6 @@
         <el-param v-if="response && response.id" v-for="(param, index) in response.param" :key="param.id" :response="response" :data="param"></el-param>
         <el-param :response="response && response.id ? response : {}"></el-param>
       </el-form-item>
-      <el-form-item class="el-form-mockjs" prop="is_mockjs">
-        <template v-if="response.id"><a class="el-tag el-tag--gray" :href="mockUrl" target="_blank">{{ mockUrl }}</a></template>
-        <el-switch v-model="response.is_mockjs" :width="80" on-text="Mockjs" off-text="Normal"></el-switch>
-      </el-form-item>
       <el-form-item label="响应内容">
         <el-button-group>
           <el-button type="primary" size="small" :plain="true" @click="handleFormat">
@@ -30,6 +26,11 @@
           </el-button>
         </el-button-group>
         <div class="editor" ref="editor"></div>
+      </el-form-item>
+      <el-form-item label="Mock 模版">
+        <template slot="label">Mock 模版（可注入 Mock 链接中的参数，<a href="http://mockjs.com/" target="_blank">查看 Mockjs 文档</a>）</template>
+        <div class="template" ref="template"></div>
+        Mock 链接：<a class="el-tag el-tag--gray" :href="mockUrl" target="_blank">{{ mockUrl }}</a>
       </el-form-item>
       <el-form-item label="响应类型" prop="type">
         <el-select v-model="response.type" placeholder="请选择响应类型">
@@ -52,13 +53,21 @@
 <script type="text/babel">
   import ace from 'brace'
   import 'brace/mode/json'
-  // katzenmilch/solarized_light/sqlserver/tomorrow/tomorrow_night_eighties
+  import 'brace/mode/ejs'
   import 'brace/theme/tomorrow'
   import jsonSchemaGenerator from 'json-schema-generator'
-  import Mockjs from 'mockjs'
   import { mapGetters, mapActions } from 'vuex'
-  import { FORM_ENCTYPE, RESPONSE_TYPE, BACKUP_API, MOCK_URL } from '../../config'
-  import { flattenObject, showNotify, base64Encode } from '../../utils'
+  import {
+    FORM_ENCTYPE,
+    RESPONSE_TYPE,
+    BACKUP_API,
+    MOCK_URL
+  } from '../../config'
+  import {
+    flattenObject,
+    showNotify,
+    base64Encode
+  } from '../../utils'
   import ElParam from './param.vue'
   import ElFieldBlock from '../../components/field-block.vue'
 
@@ -78,6 +87,7 @@
         disabled: false,
         dialogVisible: false,
         body: '',
+        template: '',
         flattenBody: {},
         newResponse: {},
         response: {
@@ -86,8 +96,8 @@
           description: '',
           enctype: 'application/json',
           jsonp_callback: '',
-          is_mockjs: false,
-          body: '{}'
+          body: '{}',
+          template: ''
         },
         rules: {
           description: [
@@ -120,7 +130,19 @@
     mounted() {
       this.newResponse = JSON.parse(JSON.stringify(this.response))
       this.loadData()
-      this.initEditor()
+      this.initEditor({
+        ref: 'editor',
+        field: 'body',
+        mode: 'json',
+        theme: 'tomorrow'
+      })
+
+      this.initEditor({
+        ref: 'template',
+        field: 'template',
+        mode: 'ejs',
+        theme: 'tomorrow'
+      })
     },
     methods: {
       ...mapActions([
@@ -136,7 +158,7 @@
 
             this.disabled = true
             this.response.body = this.body
-            this.response.is_mockjs = this.response.is_mockjs === true ? 1 : 0
+            this.response.template = this.template
 
             if (this.response.id) {
               result = await this.updateResponse(this.response)
@@ -156,7 +178,13 @@
       },
       handleFormat() {
         if (this.response.body) {
-          this.initEditor(true)
+          this.initEditor({
+            ref: 'editor',
+            field: 'body',
+            mode: 'json',
+            theme:'tomorrow',
+            refresh: true
+          })
         }
       },
       handleComment() {
@@ -167,8 +195,7 @@
         let name = this.apiModel.name + this.response.description
         let url = this.apiModel.url
         let body = JSON.parse(this.response.body)
-        let is_mockjs = this.response.is_mockjs
-        let rules = jsonSchemaGenerator(is_mockjs ? Mockjs.mock(body) : body)
+        let rules = jsonSchemaGenerator(body)
         let callback = this.response.jsonp_callback
         let type = callback ? 'jsonp' : 'cors'
         let charset = 'utf-8'
@@ -201,28 +228,32 @@
         if (this.data && this.data.id) {
           this.response = JSON.parse(JSON.stringify(this.data))
           this.response.body = this.response.body || '{}'
-          this.response.is_mockjs = this.response.is_mockjs === 1 ? true : false
         }
       },
-      initEditor(refresh) {
+      initEditor(option) {
         let editor
-        let body
+        let content
         let vm = this
 
-        editor = ace.edit(this.$refs.editor)
+        editor = ace.edit(this.$refs[option.ref])
         editor.$blockScrolling = Infinity
-        editor.getSession().setMode('ace/mode/json')
+        editor.getSession().setMode(`ace/mode/${option.mode}`)
         editor.getSession().setTabSize(2)
-        editor.setTheme('ace/theme/tomorrow')
-        editor.setOptions({ maxLines: Infinity })
+        editor.setTheme(`ace/theme/${option.theme}`)
+        editor.setOptions({ maxLines: Infinity, minLines: 5 })
         editor.setShowPrintMargin(false)
+
         editor.on('change', function () {
-          vm.body = editor.getValue()
+          vm[option.field] = editor.getValue()
         })
 
-        body = true === refresh ? (editor.getValue() || '{}') : this.response.body
+        content = true === option.refresh ? (editor.getValue() || '{}') : this.response[option.field]
 
-        editor.setValue(JSON.stringify(JSON.parse(body), null, 2))
+        if (option.mode === 'json') {
+          content = JSON.stringify(JSON.parse(content), null, 2)
+        }
+
+        editor.setValue(content)
         editor.clearSelection()
       }
     }
@@ -268,21 +299,9 @@
       }
     }
   }
-  .editor {
+  .editor, .template {
     width: 100%;
     min-height: 150px;
     border: 1px solid #c0ccda;
-  }
-</style>
-<style lang="scss">
-  .el-form-mockjs {
-    position: absolute;
-    right: 15px;
-    overflow: hidden;
-
-    .el-form-item__content {
-      float: left;
-      clear: none;
-    }
   }
 </style>

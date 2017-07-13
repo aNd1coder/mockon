@@ -58,11 +58,9 @@
             <el-form-item label="请求方式" prop="type">
               <el-select v-model="form.type" placeholder="请选择请求方式">
                 <el-option label="正常接口" value=""></el-option>
-                <el-option label="模拟接口" value="mock"></el-option>
                 <el-option label="代理接口" value="proxy"></el-option>
               </el-select>
             </el-form-item>
-            <el-tag v-if="form.type === 'mock'" type="primary">Mock 数据地址：<a :href="mockUrl" target="_blank">{{ mockUrl }}</a></el-tag>
             <el-form-item label="请求参数">
               <el-form-item v-for="(param, index) in form.params" :key="param.id">
                 <el-input type="text" v-model="param.default_value" placeholder="参数值">
@@ -140,6 +138,9 @@
                     </el-table-column>
                   </el-table>
                   <pre :ref="'codeview'+response.id" class="code-view"><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code><el-button size="small" @click="handleCollapse(response.id)">折叠</el-button></pre>
+                  <p>
+                    Mock 链接：<a :href="mockUrl(response)" target="_blank">{{ mockUrl(response) }}</a>
+                  </p>
                 </div>
               </template>
               <template v-if="errors.length">
@@ -180,7 +181,6 @@
     base64Decode,
     marked
   } from '../../utils'
-  import Mock from 'mockjs'
 
   export default{
     components: {
@@ -251,9 +251,6 @@
         })
 
         return params
-      },
-      mockUrl() {
-        return MOCK_URL + base64Encode(this.response.id)
       },
       wrapClass() {
         return [
@@ -335,10 +332,7 @@
               method = 'jsonp'
             }
 
-            if (this.form.type === 'mock') {
-              url = MOCK_URL + this.response.id
-              method = 'post'
-            } else if (this.form.type === 'proxy') {
+            if (this.form.type === 'proxy') {
               data = { ...this.form }
               data.params = this.params
               method = 'post'
@@ -437,6 +431,9 @@
           return (header.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0)
         }
       },
+      mockUrl(response) {
+        return MOCK_URL + base64Encode(response.id)
+      },
       newParam () {
         this.form.params.push({
           id: this.uuid,
@@ -487,12 +484,7 @@
       },
       formattedBody (response) {
         let body = response.body || {}
-
         body = JSON.parse(body)
-
-        if (response.is_mockjs) {
-          body = Mock.mock(body)
-        }
 
         return jsonFormat(body, this.fields, response.jsonp_callback)
       },

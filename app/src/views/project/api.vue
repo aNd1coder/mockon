@@ -331,7 +331,7 @@
     .fa-clone {
       margin-left: 5px;
     }
-    .ace_scroller:after {
+    .editor .ace_scroller:after {
       position: absolute;
       content: 'JSON';
       font-size: 10rem;
