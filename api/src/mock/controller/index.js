@@ -8,6 +8,7 @@ export default class extends think.controller.base {
     let params = this.get()
     let id = params.id
     let callback = params.callback
+    let format = params.format
 
     delete params.id
 
@@ -24,8 +25,12 @@ export default class extends think.controller.base {
         content = Mockjs.mock(content)
         callback = callback || data.jsonp_callback
 
-        if (callback) {
-          content = `${callback}(${JSON.stringify(content)})`
+        if (format === 'json') {
+          JSON.stringify(content)
+        } else {
+          if (callback) {
+            content = `${callback}(${JSON.stringify(content)})`
+          }
         }
 
         return this.end(content)

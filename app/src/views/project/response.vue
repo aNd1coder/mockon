@@ -28,9 +28,13 @@
         <div class="editor" ref="editor"></div>
       </el-form-item>
       <el-form-item label="Mock 模版">
-        <template slot="label">Mock 模版（可注入 Mock 链接中的参数，<a href="http://mockjs.com/" target="_blank">查看 Mockjs 文档</a>）</template>
+        <template slot="label">Mock 模版（可注入 Mock 链接中的参数，<a href="http://mockjs.com/examples.html" target="_blank">查看 Mockjs 示例</a>）</template>
+        <el-button-group>
+          <el-button type="primary" size="small" :plain="true" @click="handlePreview">
+            <i class="fa fa-eye"></i>数据预览
+          </el-button>
+        </el-button-group>
         <div class="template" ref="template"></div>
-        Mock 链接：<a class="el-tag el-tag--gray" :href="mockUrl" target="_blank">{{ mockUrl }}</a>
       </el-form-item>
       <el-form-item label="响应类型" prop="type">
         <el-select v-model="response.type" placeholder="请选择响应类型">
@@ -48,6 +52,11 @@
         <el-button :disabled="disabled" :loading="disabled" @click="handleUnbindBackup">禁用数据兜底服务</el-button>
       </div>
     </el-dialog>
+    <el-dialog size="large" title="Mock 数据预览" v-model="dialogMockVisible">
+      <a class="refresh" href="javascript:;" @click="handlePreview"><i class="fa fa-refresh"></i>刷新数据</a>
+      <a class="external-link" :href="mockUrl" target="_blank"><i class="fa fa-external-link"></i>窗口打开</a>
+      <div class="preview" ref="preview"></div>
+    </el-dialog>
   </section>
 </template>
 <script type="text/babel">
@@ -55,6 +64,7 @@
   import 'brace/mode/json'
   import 'brace/mode/ejs'
   import 'brace/theme/tomorrow'
+  import 'brace/theme/tomorrow_night_eighties'
   import jsonSchemaGenerator from 'json-schema-generator'
   import { mapGetters, mapActions } from 'vuex'
   import {
@@ -86,8 +96,10 @@
         RESPONSE_TYPE,
         disabled: false,
         dialogVisible: false,
+        dialogMockVisible: false,
         body: '',
         template: '',
+        mockData: '',
         flattenBody: {},
         newResponse: {},
         response: {
@@ -224,6 +236,35 @@
 
         showNotify(this, result)
       },
+      handlePreview() {
+        this.loading = true
+
+        fetch(this.mockUrl + '?format=json').then(res => {
+          return res.text()
+        }).then(content => {
+          this.dialogMockVisible = true
+
+          try {
+            JSON.parse(content)
+
+            setTimeout(_ => {
+              if (this.$refs.preview) {
+                this.initEditor({
+                  ref: 'preview',
+                  content,
+                  mode: 'json',
+                  theme: 'tomorrow_night_eighties',
+                  readonly: true
+                })
+
+                this.loading = false
+              }
+            }, 10)
+          } catch (e) {
+            this.$message.error(content)
+          }
+        })
+      },
       loadData() {
         if (this.data && this.data.id) {
           this.response = JSON.parse(JSON.stringify(this.data))
@@ -231,9 +272,9 @@
         }
       },
       initEditor(option) {
+        let vm = this
         let editor
         let content
-        let vm = this
 
         editor = ace.edit(this.$refs[option.ref])
         editor.$blockScrolling = Infinity
@@ -243,11 +284,19 @@
         editor.setOptions({ maxLines: Infinity, minLines: 5 })
         editor.setShowPrintMargin(false)
 
-        editor.on('change', function () {
-          vm[option.field] = editor.getValue()
-        })
+        if (option.readonly && option.readonly === false) {
+          editor.setReadOnly(false)
+        }
 
-        content = true === option.refresh ? (editor.getValue() || '{}') : this.response[option.field]
+        if (option.field) {
+          editor.on('change', function () {
+            vm[option.field] = editor.getValue()
+          })
+
+          content = true === option.refresh ? (editor.getValue() || '{}') : this.response[option.field]
+        } else {
+          content = option.content
+        }
 
         if (option.mode === 'json') {
           content = JSON.stringify(JSON.parse(content), null, 2)
@@ -273,6 +322,13 @@
       &:hover {
         border-color: #20a0ff;
       }
+    }
+  }
+  a {
+    color: #20a0ff;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
   .btn-backup {
@@ -303,5 +359,11 @@
     width: 100%;
     min-height: 150px;
     border: 1px solid #c0ccda;
+  }
+  .refresh {
+    margin-right: 10px;
+  }
+  .preview {
+    margin-top: 10px;
   }
 </style>
