@@ -150,7 +150,7 @@
         vm.model.url = vm.project.base_url
 
         if (module_id) {
-          vm.model.module_id = base64Decode(module_id)
+          vm.model.module_id = parseInt(base64Decode(module_id))
         }
 
         vm.newApi = JSON.parse(JSON.stringify(vm.model))
