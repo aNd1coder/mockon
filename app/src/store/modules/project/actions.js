@@ -49,6 +49,16 @@ export async function updateProject({ commit }, payload) {
   return result.body
 }
 
+export async function deleteProject({ commit }, payload) {
+  let result = await Vue.http.delete('project/' + payload.id)
+
+  if (result.body.code === 0) {
+    commit(types.DELETE_PROJECT, payload)
+  }
+
+  return result.body
+}
+
 export async function updateProjectSwagger({ commit }, payload) {
   let result = await Vue.http.put('project/' + payload.id, payload, { params: { action: 'update-swagger' } })
 

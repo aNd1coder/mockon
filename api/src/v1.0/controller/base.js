@@ -61,7 +61,7 @@ export default class extends think.controller.rest {
     let projectId
     let members
 
-    if (typeof project === 'number') {
+    if (typeof project === 'string') {
       projectId = project
     } else {
       projectId = project.id

@@ -1,5 +1,5 @@
 <template>
-  <section v-loading.fullscreen.lock="loading">
+  <section v-loading.fullscreen.lock="loading" :element-loading-text="loadingText">
     <div class="page-header">
       <h1 class="pull-left">接口管理</h1>
       <el-button v-if="project.swagger_url" class="pull-right" type="default" :disabled="disabled" :loading="disabled" @click="handleUpdateSwagger">更新 Swagger</el-button>
@@ -70,6 +70,7 @@
         title: '',
         dialogVisible: false,
         loading: true,
+        loadingText: '',
         disabled: false,
         base64Encode,
         module: {
@@ -107,8 +108,13 @@
         'updateProjectSwagger'
       ]),
       async handleUpdateSwagger() {
-        let result = await this.updateProjectSwagger(this.project)
+        let result
+
+        this.loadingText = '配置生成中，稍安勿躁~'
+        this.loading = true
+        result = await this.updateProjectSwagger(this.project)
         await this.fetchModules({ project_id: this.project.id })
+        this.loading = false
         showNotify(this, result)
       },
       handleCreate() {

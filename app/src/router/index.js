@@ -32,6 +32,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
+    name: 'index',
     component: ProjectIndex
   },
   {

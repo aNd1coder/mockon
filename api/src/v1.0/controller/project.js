@@ -68,6 +68,12 @@ export default class extends Base {
       return this.fail('data is empty')
     }
 
+    let projects = await model.where({ code: data.code }).select()
+
+    if (projects.length > 0) {
+      return this.fail('项目代号已被占用')
+    }
+
     data.user_id = user.id
 
     let id = await model.add(data)
@@ -88,7 +94,11 @@ export default class extends Base {
     return this.success(data)
   }
 
-  async deleteAction(self) {
+  async deleteAction() {
+    let self = this
+    let model = this.modelInstance
+    let pk = await model.setRelation(false).getPk()
+
     if (!this.id) {
       return this.fail('params error')
     }
@@ -97,8 +107,7 @@ export default class extends Base {
       return this.fail('NOT_OWNER')
     }
 
-    let model = this.modelInstance
-    let pk = await model.setRelation(false).getPk()
+    let project = await model.where({ [pk]: this.id }).find()
     let rows = await model.transaction(async () => {
       // 删除成员
       await self.model('member').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
@@ -122,7 +131,7 @@ export default class extends Base {
     })
 
     if (rows > 0) {
-      await this.createLogger({ description: `删除了项目【${data.name}】及关联数据` })
+      await this.createLogger({ description: `删除了项目【${project.name}】及关联数据` })
     }
 
     return this.success({ affectedRows: rows })
@@ -149,8 +158,17 @@ export default class extends Base {
     delete data.created_at
     delete data.modified_at
 
+    let project = await model.where({ [pk]: this.id }).find()
+
+    if (data.code !== project.code) {
+      let projects = await model.where({ code: data.code }).select()
+
+      if (projects.length > 0) {
+        return this.fail('项目代号已被占用')
+      }
+    }
+
     if (action === 'update-swagger') {
-      let project = await model.where({ [pk]: this.id }).find()
       let project_id = this.id
       let user = this.userInfo()
       let user_id = user.id

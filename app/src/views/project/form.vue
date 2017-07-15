@@ -41,8 +41,8 @@
       </el-form-item>
       <el-form-item label="项目状态" prop="status">
         <el-select v-model="model.status" placeholder="请选择项目状态">
-          <el-option label="正常" value="0"></el-option>
-          <el-option label="废弃" value="1"></el-option>
+          <el-option label="正常" :value="0"></el-option>
+          <el-option label="废弃" :value="1"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -93,15 +93,16 @@
           image: '',
           base_url: '',
           description: '',
-          enctype: '',
-          private: false
+          enctype: 'application/json',
+          private: false,
+          status: 0,
         },
         rules: {
           name: [
             { required: true, message: '请输入项目名称', trigger: 'blur' }
           ],
           code: [
-            { required: true, message: '请输入项目代码', trigger: 'blur' }
+            { required: true, message: '请输入项目代号', trigger: 'blur' }
           ]
         }
       }
@@ -131,7 +132,9 @@
       handleDelete() {
         showConfirm(this, '删除项目会连同关联的数据一并删除，确定要删除?', async (ctx) => {
           let result = await ctx.deleteProject(ctx.model)
-          showNotify(ctx, result)
+          showNotify(ctx, result, ctx => {
+            ctx.$router.push({ name: 'index' })
+          })
         })
       },
       handleSubmit() {
@@ -164,7 +167,7 @@
       loadData() {
         if (this.editMode) {
           this.model = JSON.parse(JSON.stringify(this.project))
-          this.model.private = !!this.model.private
+          this.private = !!this.model.private
         }
       }
     }

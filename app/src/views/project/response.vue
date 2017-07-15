@@ -16,7 +16,7 @@
         <el-param v-if="response && response.id" v-for="(param, index) in response.param" :key="param.id" :response="response" :data="param"></el-param>
         <el-param :response="response && response.id ? response : {}"></el-param>
       </el-form-item>
-      <el-form-item label="响应内容">
+      <el-form-item label="响应内容（文档展示）">
         <el-button-group>
           <el-button type="primary" size="small" :plain="true" @click="handleFormat">
             <i class="fa fa-code"></i>格式化
