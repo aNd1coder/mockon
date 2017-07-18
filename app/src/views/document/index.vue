@@ -13,7 +13,8 @@
           <ul v-if="module.api.length > 0">
             <li v-for="ma in module.api" v-if="filterApi(ma)" :key="ma.id" :class="{ 'active': ma.id === api.id }">
               <router-link :to="{ name: 'document-view', params: { id: base64Encode(ma.id) } }">
-                <el-http-method :method="ma.method"></el-http-method> {{ ma.name }}
+                <el-http-method :method="ma.method"></el-http-method>
+                {{ ma.name }}
               </router-link>
             </li>
           </ul>
@@ -67,14 +68,18 @@
                   <template slot="prepend">
                     <el-checkbox v-model="param.checked"></el-checkbox>
                     <el-select v-model="param.location" placeholder="参数位置">
-                      <el-option v-for="(label, location) in PARAM_LOCATION" :key="location" :label="label" :value="location"></el-option>
+                      <el-option v-for="(label, location) in PARAM_LOCATION" :key="location" :label="label"
+                                 :value="location"></el-option>
                     </el-select>
-                    <el-autocomplete v-if="param.location === 'header'" v-model="param.name" :fetch-suggestions="querySearch" class="inline-input" placeholder="参数名"></el-autocomplete>
+                    <el-autocomplete v-if="param.location === 'header'" v-model="param.name"
+                                     :fetch-suggestions="querySearch" class="inline-input"
+                                     placeholder="参数名"></el-autocomplete>
                     <el-input v-else type="text" v-model="param.name" placeholder="参数名"></el-input>
                   </template>
                   <template slot="append">
                     <el-button v-if="index === form.params.length - 1" icon="plus" @click="newParam"></el-button>
-                    <el-button v-else icon="close" :disabled="!!param.required" @click="handleDelete(param)"></el-button>
+                    <el-button v-else icon="close" :disabled="!!param.required"
+                               @click="handleDelete(param)"></el-button>
                   </template>
                 </el-input>
               </el-form-item>
@@ -94,12 +99,16 @@
       <div v-if="api && api.id" class="body-inner">
         <div class="document-header">
           <i class="fa fa-align-justify" @click="withSummary = !withSummary"></i>
-          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: base64Encode(api.id) } }" class="fa fa-pencil-square-o"> 编辑接口</router-link>
+          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: base64Encode(api.id) } }"
+                       class="fa fa-pencil-square-o"> 编辑接口
+          </router-link>
         </div>
         <div class="page-wrapper">
           <div class="page-inner">
             <section class="normal markdown-section">
-              <h1>{{ api.name }}<el-tag type="gray">{{ statusMap[api.status] }}</el-tag></h1>
+              <h1>{{ api.name }}
+                <el-tag type="gray">{{ statusMap[api.status] }}</el-tag>
+              </h1>
               <div class="page-meta">
                 <el-user-block :user="api.user" :size="20"></el-user-block>
                 {{ api.modified_at | dateformat }}编辑过该接口文档
@@ -119,7 +128,9 @@
                 <div :class="'response-block response-block-'+response.type">
                   <h3 class="response-header">
                     {{ response.description }}
-                    <el-button class="pull-right" size="mini" @click="handleDebugger(response)"><i class="fa fa-bug"></i>调试</el-button>
+                    <el-button class="pull-right" size="mini" @click="handleDebugger(response)"><i
+                      class="fa fa-bug"></i>调试
+                    </el-button>
                   </h3>
                   <el-table v-if="response.param.length" :data="response.param" :row-class-name="tableRowClassName">
                     <el-table-column prop="name" label="名称"></el-table-column>
@@ -134,10 +145,15 @@
                       <span>{{ (row.required ? '是' : '否') }}</span>
                     </el-table-column>
                     <el-table-column prop="description" label="描述" inline-template>
-                      <div v-html="marked(row.description)"></div>
+                      <el-tooltip placement="left" v-if="row.description">
+                        <div slot="content" v-html="marked(row.description)"></div>
+                        <a href="javascript:;">详情</a>
+                      </el-tooltip>
                     </el-table-column>
                   </el-table>
-                  <pre :ref="'codeview'+response.id" class="code-view"><code :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code><el-button size="small" @click="handleCollapse(response.id)">折叠</el-button></pre>
+                  <pre :ref="'codeview'+response.id" class="code-view"><code
+                    :class="'lang-json' + (response.jsonp_callback ? 'p' : '')" v-html="formattedBody(response)"></code><el-button
+                    size="small" @click="handleCollapse(response.id)">折叠</el-button></pre>
                   <p>
                     Mock 链接：<a :href="mockUrl(response)" target="_blank">{{ mockUrl(response) }}</a>
                   </p>
@@ -171,7 +187,7 @@
     PARAM_LOCATION,
     MOCK_URL,
     PROXY_URL
-} from '../../config'
+  } from '../../config'
   import ElHttpMethod from '../../components/http-method.vue'
   import ElUserBlock from '../../components/user-block.vue'
   import ElNodata from '../../components/nodata.vue'
@@ -192,10 +208,11 @@
       return {
         withSummary: true,
         withDebugger: false,
-        statusMap: {
-          '0': '开发中',
-          '1': '使用中'
-        },
+        statusMap: [
+          '开发中',
+          '使用中',
+          '已废弃'
+        ],
         uuid: 0,
         result: false,
         HTTP_HEADERS,
@@ -278,7 +295,7 @@
       }
     },
     beforeRouteEnter(to, from, next) {
-      next(async(vm) => {
+      next(async (vm) => {
         vm.withDebugger = false
         await vm.loadData()
       })
@@ -308,7 +325,7 @@
         })
       },
       handleSubmit() {
-        this.$refs.form.validate(async(valid) => {
+        this.$refs.form.validate(async (valid) => {
           if (valid) {
             let params = {}
             let url = this.form.url
@@ -347,21 +364,25 @@
 
             this.body = false
 
-            await this.$http[method](url, data).then(async (response) => {
-              let body
+            try {
+              await this.$http[method](url, data).then(async (response) => {
+                let body
 
-              if (response.body) {
-                body = response.body
-              } else {
-                body = eval('(' + response.bodyText + ')') // 兼容 key 没加引号
+                if (response.body) {
+                  body = response.body
+                } else {
+                  body = eval('(' + response.bodyText + ')') // 兼容 key 没加引号
+                }
+
+                this.body = JSON.stringify(body, null, 2)
+                await this.createDebug({ data: JSON.stringify(this.form) })
+                this.renderEditor()
+              })
+            } catch (e) {
+              if (!e.ok && e.status === 0) {
+                this.$message.error('莫非是接口限制跨域请求了？请试试代理方式')
               }
-
-              this.body = JSON.stringify(body, null, 2)
-              await this.createDebug({ data: JSON.stringify(this.form) })
-              this.renderEditor()
-            }).catch(error => {
-              console.log(error)
-            })
+            }
 
             this.disabled = false
           } else {
@@ -483,7 +504,7 @@
         }
       },
       formattedBody (response) {
-        let body = response.body || {}
+        let body = response.body || '{}'
         body = JSON.parse(body)
 
         return jsonFormat(body, this.fields, response.jsonp_callback)
@@ -593,6 +614,10 @@
   }
   .el-table {
     border-width: 1px;
+
+    a {
+      color: #20a0ff;
+    }
   }
   .code-view {
     position: relative;
@@ -668,7 +693,6 @@
       }
     }
   }
-
   .response {
     .el-tag {
       margin-bottom: 10px;
@@ -767,7 +791,7 @@
 
         a, .module-name {
           display: block;
-          padding: 5px 15px 0;
+          padding: 8px 15px 0;
           color: #364149;
           text-overflow: ellipsis;
           overflow: hidden;
@@ -775,7 +799,7 @@
         }
 
         .module-name {
-          padding-top: 10px;
+          padding-top: 12px;
           color: #7f8c8d;
           opacity: 0.6;
           cursor: not-allowed;
@@ -813,7 +837,7 @@
         position: absolute;
         top: 25px;
         right: 20px;
-        margin-right:0;
+        margin-right: 0;
         color: #ccc;
         font-size: 20px;
         cursor: pointer;

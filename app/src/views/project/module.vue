@@ -12,7 +12,7 @@
               <i class="fa fa-angle-right"></i>{{ module.name }}({{ module.api && module.api.length > 0 ? module.api.length : 0 }})
               <a href="javascript:;" @click="handleDelete(module)">删除</a>
               <a href="javascript:;" @click="handleUpdate(module)">编辑</a>
-              <router-link :to="{ name: 'project-api-new', params: { code: project.code, module_id: base64Encode(module.id) } }">新增接口</router-link>
+              <a href="javascript:;" @click="handleCreateApi(module)">新增接口</a>
             </h3>
             <ul v-if="module.api && module.api.length > 0" class="apis">
               <li v-for="api in module.api" class="api">
@@ -110,7 +110,7 @@
       async handleUpdateSwagger() {
         let result
 
-        this.loadingText = '配置生成中，稍安勿躁~'
+        this.loadingText = '数据导入中，稍安勿躁~'
         this.loading = true
         result = await this.updateProjectSwagger(this.project)
         await this.fetchModules({ project_id: this.project.id })
@@ -126,6 +126,9 @@
           description: ''
         }
         this.dialogVisible = true
+      },
+      handleCreateApi(module) {
+        location.href = `/project/${this.project.code}/api/new/${base64Encode(module.id)}`
       },
       handleUpdate(module) {
         this.title = '修改分组'

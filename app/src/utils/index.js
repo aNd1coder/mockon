@@ -35,6 +35,7 @@ export function jsonFormat(body, fields, jsonp) {
   let space = '  '
   let index = 0
   let toString = Object.prototype.toString
+  let isArray = getType(body) === 'array'
 
   body = JSON.parse(JSON.stringify(body))
 
@@ -139,7 +140,11 @@ export function jsonFormat(body, fields, jsonp) {
   htmlBlock = _.trimEnd(htmlBlock, '\n')
   htmlBlock = _.trimEnd(htmlBlock, ',')
 
-  htmlBlock = (jsonp ? buildJSONP(jsonp + '(') : '') + '{' + (htmlBlock ? '\n' + htmlBlock + '\n' : '') + '}' + (jsonp ? buildJSONP(')') : '')
+  htmlBlock = (jsonp ? buildJSONP(jsonp + '(') : '')
+    + (isArray ? '[' : '{')
+    + (htmlBlock ? '\n' + htmlBlock + '\n' : '')
+    + (isArray ? ']' : '}')
+    + (jsonp ? buildJSONP(')') : '')
 
   return htmlBlock
 }

@@ -1,7 +1,7 @@
 <template>
-  <span @click="handleRoute" class="el-user-block">
-    <span class="el-user-avatar" :style="{ width: size + 'px',height: size + 'px','font-size': size + 'px' }">
-      <img :src="user.avatar | imgformat" :width="size" :title="user | displayName"/>
+  <span @click="handleRoute" :class="'el-user-block'+(user.avatar ? ' has-avatar':'')">
+    <span class="el-user-avatar" :style="{ width: size + 'px',height: size + 'px','font-size': size + 'px' }" :title="user | displayName">
+      <img :src="user.avatar | imgformat" :width="size"/>
     </span>
     <span v-if="nameVisible" class="el-user-name">
       <slot name="name">{{ user | displayName }}</slot>
@@ -19,6 +19,12 @@
         color: #20a0ff;
       }
     }
+
+    &.has-avatar {
+      .el-user-avatar:before {
+        display: none;
+      }
+    }
   }
   .el-user-avatar {
     position: relative;
@@ -26,6 +32,8 @@
     margin: 0 auto;
     border-radius: 50%;
     overflow: hidden;
+    background-color: #fff;
+    box-shadow: 0 0 1px rgba(0, 0, 0, .3);
 
     &:before {
       position: absolute;
@@ -47,7 +55,6 @@
       left: 50%;
       max-width: 100%;
       transform: translate(-50%, -50%);
-      border-radius: 50%;
     }
   }
   .el-user-name {

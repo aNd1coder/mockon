@@ -1,7 +1,15 @@
 'use strict'
 
-import superAgent from 'superagent'
+import Mockjs from 'mockjs'
+import SwaggerParser from 'swagger-parser'
 import Base from './base.js'
+
+let fieldModelInstance
+let project_id
+let module_id
+let api_id
+let response_id
+let user_id
 
 export default class extends Base {
   async getAction() {
@@ -118,6 +126,9 @@ export default class extends Base {
       // 删除参数
       await self.model('param').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
+      // 删除状态码
+      await self.model('error').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
+
       // 删除响应
       await self.model('response').setRelation(false).db(model.db()).where({ project_id: self.id }).delete()
 
@@ -135,6 +146,63 @@ export default class extends Base {
     }
 
     return this.success({ affectedRows: rows })
+  }
+
+  buildResponseBody(body, properties) {
+    if (properties) {
+      for (let name in properties) {
+        let obj = properties[name]
+        let defaultValue = obj.default || obj.example
+        let description = obj.description || ''
+        let type = obj.type || ''
+        let format = obj.format || ''
+
+        fieldModelInstance.add({
+          name,
+          description,
+          project_id,
+          api_id,
+          response_id,
+          user_id
+        })
+
+        if (type === 'integer') {
+          body[name + '|1-100000'] = defaultValue || 1
+        }
+
+        if (type === 'boolean') {
+          body[name] = defaultValue || '@boolean'
+        }
+
+        if (type === 'string') {
+          if (obj.enum) {
+            body[name + '|1'] = obj.enum
+          } else if (format === 'date-time') {
+            body[name] = defaultValue || '@date("yyyy-MM-dd") @time'
+          } else {
+            body[name] = defaultValue || '@title(1, 3)'
+          }
+        }
+
+        if (type === 'object') {
+          body[name] = {}
+
+          this.buildResponseBody(body[name], obj.properties)
+        }
+
+        if (type === 'array') {
+          body[name] = {}
+
+          if (obj.items.properties) {
+            this.buildResponseBody(body[name], obj.items.properties)
+          } else {
+            body[name] = `@${obj.items.type}`
+          }
+
+          body[name] = [body[name]]
+        }
+      }
+    }
   }
 
   async putAction() {
@@ -169,112 +237,216 @@ export default class extends Base {
     }
 
     if (action === 'update-swagger') {
-      let project_id = this.id
+      let swaggerDocument
       let user = this.userInfo()
-      let user_id = user.id
-      let result = await superAgent.get(project.swagger_url)
+
+      project_id = this.id
+      user_id = user.id
+
       let moduleModelInstance = this.model('module').setRelation(false).db(model.db())
       let apiModelInstance = this.model('api').setRelation(false).db(model.db())
       let responseModelInstance = this.model('response').setRelation(false).db(model.db())
+      let errorModelInstance = this.model('error').setRelation(false).db(model.db())
       let paramModelInstance = this.model('param').setRelation(false).db(model.db())
+      fieldModelInstance = this.model('field').setRelation(false).db(model.db())
 
-      if (result.statusCode === 200) {
-        project = result.body
+      // 解析 swagger.json/swagger.yaml 文档
+      try {
+        swaggerDocument = await SwaggerParser.validate(project.swagger_url)
+      } catch (e) {
+        return this.fail('文档验证失败：' + e.message)
+      }
 
-        let info = project.info
-        let schemes = project.schemes
-        let paths = project.paths
-        let definitions = project.definitions
-        let module_id = await moduleModelInstance.add({
-          name: '默认分组',
-          code: 'default',
-          project_id,
-          user_id
-        })
+      let info = swaggerDocument.info
+      let schemes = swaggerDocument.schemes
+      let paths = swaggerDocument.paths
+      let _module = { "name": '默认分组', "code": 'default', project_id }
+      let modules = await moduleModelInstance.where(_module).select()
 
-        data.name = info.name
-        data.description = info.description
-        data.base_url = schemes[0] + '://' + project.host + project.basePath
+      // 创建默认分组
+      if (modules.length === 0) {
+        module_id = await moduleModelInstance.add({ ..._module, user_id })
+      } else {
+        module_id = modules[0].id
+      }
 
-        for (let path in paths) {
-          let apis = paths[path]
+      data.description = info.description
+      data.base_url = schemes[0] + '://' + swaggerDocument.host + swaggerDocument.basePath
 
-          for (let method in apis) {
-            let api = apis[method]
-            let api_id = await apiModelInstance.add({
-              name: api.summary,
-              description: api.description,
-              method: method.toUpperCase(),
-              url: data.base_url + path,
+      errorModelInstance.where({ project_id }).delete()
+      paramModelInstance.where({ project_id }).delete()
+      fieldModelInstance.where({ project_id }).delete()
+
+      for (let path in paths) {
+        let apis = paths[path]
+
+        // 存在 url + method 则更新
+        for (let method in apis) {
+          let api = apis[method]
+          let url = data.base_url + path
+          method = method.toUpperCase()
+          let _apis = await apiModelInstance.where({ method, url }).select()
+          let _api = {
+            name: api.summary,
+            description: api.description,
+            method,
+            url,
+            project_id,
+            module_id,
+            status: api.deprecated ? 2 : 1,
+            developer: info.contact && info.contact.email,
+            user_id
+          }
+
+          if (_apis.length === 0) {
+            api_id = await apiModelInstance.add(_api)
+          } else {
+            api_id = _apis[0].id
+
+            delete _api.created_at
+            delete _api.modified_at
+
+            await apiModelInstance.where({ id: api_id }).update(_api)
+          }
+
+          for (let statusCode in api.responses) {
+            let response = api.responses[statusCode]
+            let _responses
+            let _response = {}
+            let type = statusCode === '200' ? 'success' : 'error'
+            let description = response.description
+            let enctype = api.produces && api.produces.length > 0 && api.produces[0]
+              || swaggerDocument.produces && swaggerDocument.produces.length > 0 && swaggerDocument.produces[0]
+              || 'application/json'
+            let schema = response.schema
+            let body = {}
+
+            // 处理响应结果
+            if (schema) {
+              let isArray = schema.type === 'array'
+              let isObject = schema.type === 'object'
+
+              if (isArray || isObject) {
+                this.buildResponseBody(body, isArray ? schema.items.properties : schema.properties)
+              } else {
+                body = `@${schema.type}`
+              }
+
+              if (isArray) {
+                body = [body]
+              }
+            } else {
+              body = { code: statusCode, description: response.description }
+            }
+
+            // 处理响应数据
+            _response = {
+              type,
+              description,
+              enctype,
+              body: JSON.stringify(Mockjs.mock(body)),
               project_id,
-              module_id,
+              api_id,
               user_id
-            })
+            }
 
-            for (let statusCode in api.responses) {
-              let response = api.responses[statusCode]
-              let response_id = await responseModelInstance.add({
-                type: (statusCode == 200 ? 'success' : 'error'),
-                description: response.description,
-                enctype: api.produces[0] || 'application/json',
-                body: '',
-                project_id,
-                api_id,
-                user_id
-              })
+            _responses = await responseModelInstance.where({
+              type,
+              description,
+              enctype,
+              project_id,
+              api_id
+            }).select()
 
-              for (let param of api.parameters) {
-                if (param.schema) {
-                  let ref = param.schema.$ref ? param.schema.$ref.replace('#/definitions/', '') : ''
-                  let definition = definitions[ref] // "#/definitions/User"
-                  let properties = definition && definition.properties ? definition.properties : {}
+            if (_responses.length === 0) {
+              // 新增时的默认模拟数据模版
+              _response.template = statusCode == '200' ? JSON.stringify(body) : ''
+              response_id = await responseModelInstance.add(_response)
+            } else {
+              response_id = _responses[0].id
 
-                  for (let name in properties) {
-                    let property = properties[name]
+              delete _response.created_at
+              delete _response.modified_at
 
-                    if (property.$ref) {
-                      property = definitions[property.$ref.replace('#/definitions/', '')]
-                    }
+              await responseModelInstance.where({ id: response_id }).update(_response)
+            }
 
-                    let type = property.type
-                    let required = property.required
-                    let description = (property.description || '') + '[' + (property.enum ? property.enum.join(',') + ']' : '')
+            // 处理参数数据
+            for (let param of api.parameters) {
+              if (param.in === 'body') {
+                let schema = param.schema
+                let isObject = schema.type === 'object'
+                let properties = isObject ? schema.properties : schema.items.properties
+                for (let name in properties) {
+                  let property = properties[name]
+                  let type = property.type
+                  let required = isObject ? schema.required : schema.items.required
+                  let description = (property.description || '') + (property.enum ? '（' + property.enum.join('、') + '）' : '')
 
+                  if (schema.type === 'object') {
                     required = required && required.indexOf(name) !== -1 ? 1 : 0
-
-                    await paramModelInstance.add({
-                      name,
-                      type,
-                      location: param.in,
-                      default_value: property.example || '',
-                      required,
-                      description,
-                      project_id,
-                      api_id,
-                      response_id,
-                      user_id
-                    })
+                  } else {
+                    required = property.required
                   }
-                } else {
+
+                  if (property.type === 'object') {
+                    description += `${JSON.stringify(property.properties)}`
+                  }
+
                   await paramModelInstance.add({
-                    name: param.name,
-                    type: param.type,
+                    name,
+                    type,
                     location: param.in,
-                    default_value: '',
-                    required: param.required ? 1 : 0,
-                    description: param.description,
+                    default_value: property.example || '',
+                    required,
+                    description,
                     project_id,
                     api_id,
                     response_id,
                     user_id
                   })
                 }
+              } else {
+                let description = param.description
+                let default_value = ''
+
+                if (param.type === 'array') {
+                  if (param.items.type !== 'object') {
+                    if (param.items.enum) {
+                      description = description + '（' + param.items.enum.join('、') + '）'
+                    }
+
+                    if (param.items.default) {
+                      default_value = param.items.default
+                    }
+                  }
+                }
+
+                await paramModelInstance.add({
+                  name: param.name,
+                  type: param.type,
+                  location: param.in,
+                  default_value,
+                  required: param.required ? 1 : 0,
+                  description,
+                  project_id,
+                  api_id,
+                  response_id,
+                  user_id
+                })
               }
             }
+
+            // 处理状态码数据
+            errorModelInstance.add({
+              code: statusCode,
+              description: response.description,
+              project_id,
+              api_id,
+              user_id
+            })
           }
         }
-      } else {
-        return this.fail(result.statusMessage)
       }
     }
 
@@ -285,7 +457,7 @@ export default class extends Base {
     let rows = await model.where({ [pk]: this.id }).update(data)
 
     if (rows > 0) {
-      await this.createLogger({ description: `更新了项目【${data.name}】信息`, project_id: this.id })
+      await this.createLogger({ description: `更新了项目【${project.name}】信息`, project_id: this.id })
     }
 
     return this.success({ affectedRows: rows })

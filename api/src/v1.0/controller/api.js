@@ -140,6 +140,7 @@ export default class extends Base {
       await self.model('param').setRelation(false).db(model.db()).where({ api_id: api.id }).delete()
       await self.model('field').setRelation(false).db(model.db()).where({ api_id: api.id }).delete()
       await self.model('response').setRelation(false).db(model.db()).where({ api_id: api.id }).delete()
+      await self.model('error').setRelation(false).db(model.db()).where({ api_id: api.id }).delete()
 
       return await model.where({ [pk]: api.id }).delete()
     })

@@ -61,10 +61,10 @@ export default class extends think.controller.rest {
     let projectId
     let members
 
-    if (typeof project === 'string') {
-      projectId = project
-    } else {
+    if (typeof project === 'object') {
       projectId = project.id
+    } else {
+      projectId = project
     }
 
     memberModelInstance = this.model('member')

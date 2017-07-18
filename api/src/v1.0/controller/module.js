@@ -78,6 +78,7 @@ export default class extends Base {
     let rows = await model.transaction(async () => {
       let apiModelInstance = self.model('api').setRelation(false).db(model.db())
       let responseModelInstance = self.model('response').setRelation(false).db(model.db())
+      let errorModelInstance = self.model('error').setRelation(false).db(model.db())
       let paramModelInstance = self.model('param').setRelation(false).db(model.db())
       let fieldModelInstance = self.model('field').setRelation(false).db(model.db())
       let apis = await apiModelInstance.where({ module_id: self.id }).select()
@@ -86,6 +87,7 @@ export default class extends Base {
         await paramModelInstance.where({ api_id: api.id }).delete()
         await fieldModelInstance.where({ api_id: api.id }).delete()
         await responseModelInstance.where({ api_id: api.id }).delete()
+        await errorModelInstance.where({ api_id: api.id }).delete()
         await apiModelInstance.where({ id: api.id }).delete()
       }
 

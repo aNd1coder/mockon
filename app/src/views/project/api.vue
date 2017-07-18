@@ -101,8 +101,9 @@
         description: '',
         fieldsData: [],
         statusMap: [
-          { text: '开发中', value: '0' },
-          { text: '使用中', value: '1' }
+          { text: '开发中', value: 0 },
+          { text: '使用中', value: 1 },
+          { text: '已废弃', value: 2 }
         ],
         newApi: {},
         model: {
@@ -113,7 +114,7 @@
           developer: '',
           method: 'GET',
           path: '',
-          status: '1'
+          status: 1
         },
         rules: {
           name: [

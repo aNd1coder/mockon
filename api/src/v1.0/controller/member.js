@@ -102,6 +102,7 @@ export default class extends Base {
     let data = this.post()
 
     delete data[pk]
+    delete data.user
     delete data.created_at
     delete data.modified_at
 

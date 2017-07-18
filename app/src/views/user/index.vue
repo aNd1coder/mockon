@@ -1,7 +1,7 @@
 <template>
   <el-row v-if="user" class="user-index" v-loading.fullscreen.lock="loading">
     <div class="page-header">
-      <div :class="'el-user-block' + (isMe ? (avatar ? '':' active'):'')">
+      <div :class="'el-user-block' + (isMe ? (avatar ? ' has-avatar':' active'):(avatar ? ' has-avatar':''))">
         <div class="el-user-avatar">
           <el-upload
             v-if="isMe"
@@ -218,7 +218,6 @@
           content: '上传头像';
           background-color: rgba(0, 0, 0, .3);
           opacity: 0;
-          border-radius: 50%;
           transition: opacity .5s linear
         }
       }
@@ -227,6 +226,12 @@
         display: block;
         width: 100px;
         margin: 0 auto;
+
+        &.has-avatar {
+          .el-user-avatar:before {
+            display: none;
+          }
+        }
 
         &:hover, &.active {
           .el-upload-wrapper:after {
@@ -248,6 +253,8 @@
         height: 100px;
         overflow: hidden;
         border-radius: 50%;
+        background-color: #fff;
+        box-shadow: 0 0 1px rgba(0, 0, 0, .3);
 
         &:before {
           position: absolute;
@@ -267,7 +274,6 @@
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          border-radius: 50%;
         }
       }
 
