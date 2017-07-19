@@ -25,7 +25,7 @@
             <el-col :span="18">
               <ul v-if="logs.length" class="el-timeline">
                 <li v-for="log in logs" class="el-timeline__item">
-                  <el-user-block :user="log.user" :size="50" :nameVisible="false"></el-user-block>
+                  <el-user-block :user="log.user" :size="50" :fontSize="60" :nameVisible="false"></el-user-block>
                   <div class="content">
                     <router-link :to="{ name: 'user', params: { username: log.user.username } }">
                       {{ log.user | displayName }}
@@ -51,7 +51,7 @@
                   </router-link>
                 </li>
                 <li v-for="member in project.members" class="member">
-                  <el-user-block :user="member" :size="40" :nameVisible="false"></el-user-block>
+                  <el-user-block :user="member" :size="40" :fontSize="48" :nameVisible="false"></el-user-block>
                 </li>
               </ul>
             </el-col>

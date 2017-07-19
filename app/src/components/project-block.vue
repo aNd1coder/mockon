@@ -14,7 +14,7 @@
     </div>
     <div class="project-plate-content" v-html="marked(project.description || project.name)"></div>
     <div class="project-plate-footer">
-      <el-user-block v-for="member in project.members" :key="member.id" :size="20" :user="member" :nameVisible="false"></el-user-block>
+      <el-user-block v-for="member in project.members" :key="member.id" :size="20" :fontSize="25" :user="member" :nameVisible="false"></el-user-block>
       <router-link :to="{ name: 'project-member', params: { code: project.code } }">
         <i class="fa fa-dobule-arrow-right"></i>
       </router-link>

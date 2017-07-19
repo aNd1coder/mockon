@@ -1,6 +1,6 @@
 <template>
   <span @click="handleRoute" :class="'el-user-block'+(user.avatar ? ' has-avatar':'')">
-    <span class="el-user-avatar" :style="{ width: size + 'px',height: size + 'px','font-size': size + 'px' }" :title="user | displayName">
+    <span class="el-user-avatar" :style="{ width: size + 'px',height: size + 'px','font-size': (fontSize || size) + 'px' }" :title="user | displayName">
       <img :src="user.avatar | imgformat" :width="size"/>
     </span>
     <span v-if="nameVisible" class="el-user-name">
@@ -75,6 +75,9 @@
         validator: function (value) {
           return value > 0
         }
+      },
+      fontSize: {
+        type: Number
       },
       disableRoute: {
         type: Boolean,

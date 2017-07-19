@@ -20,7 +20,7 @@
       <el-tab-pane label="最新动态" name="activity">
         <ul v-if="logs.length" class="el-timeline">
           <li v-for="log in logs" class="el-timeline__item">
-            <el-user-block :user="log.user" :size="50" :nameVisible="false"></el-user-block>
+            <el-user-block :user="log.user" :size="50" :fontSize="60" :nameVisible="false"></el-user-block>
             <div class="content">
               <router-link :to="{ name: 'user', params: { username: log.user.username } }">
                 {{ log.user | displayName }}
@@ -260,7 +260,7 @@
           position: absolute;
           top: 50%;
           left: 50%;
-          font: normal normal normal 110px/1 FontAwesome;
+          font: normal normal normal 120px/1 FontAwesome;
           text-rendering: auto;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;

@@ -15,7 +15,7 @@
           </el-menu-item>
           <el-submenu index="2">
             <template slot="title">
-              <el-user-block :user="session" :size="30" :nameVisible="false"></el-user-block>
+              <el-user-block :user="session" :size="30" :fontSize="40" :nameVisible="false"></el-user-block>
             </template>
             <el-menu-item index="2-1">
               <router-link :to="{ name: 'project-new' }">新建项目</router-link>

@@ -145,10 +145,13 @@
                       <span>{{ (row.required ? '是' : '否') }}</span>
                     </el-table-column>
                     <el-table-column prop="description" label="描述" inline-template>
-                      <el-tooltip placement="left" v-if="row.description">
-                        <div slot="content" v-html="marked(row.description)"></div>
-                        <a href="javascript:;">详情</a>
-                      </el-tooltip>
+                      <template v-if="row.description">
+                        <div v-if="row.description.length < 20" v-html="marked(row.description)"></div>
+                        <el-tooltip v-else placement="left">
+                          <div slot="content" v-html="marked(row.description)"></div>
+                          <a href="javascript:;">详情</a>
+                        </el-tooltip>
+                      </template>
                     </el-table-column>
                   </el-table>
                   <pre :ref="'codeview'+response.id" class="code-view"><code

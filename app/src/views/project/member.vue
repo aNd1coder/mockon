@@ -4,7 +4,7 @@
       <h1 class="pull-left">成员管理</h1>
     </div>
     <span v-for="member in members" :key="member.id" :class="'member' + (member.user_id === project.user_id ? '' : ' member-item')">
-      <el-user-block :size="80" :user="member.user"></el-user-block>
+      <el-user-block :size="80" :fontSize="95" :user="member.user"></el-user-block>
       <el-tag :type="isAdmin(member) ? (isOwner(member) ? 'success' : 'primary') : 'gray'">{{ isAdmin(member) === 1 ? (isOwner(member) ? 'Owner' : '管理员') : '成员' }}</el-tag>
       <span v-if="!isOwner(member)" class="member-btn">
         <el-button :plain="true" type="primary" size="small" @click="handleUpdate(member)">{{ member.is_owner ? '取消管理员' : '设为管理员' }}</el-button>
