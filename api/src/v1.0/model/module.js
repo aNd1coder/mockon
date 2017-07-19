@@ -3,8 +3,7 @@
 export default class extends think.model.relation {
   relation = {
     api: {
-      type: think.model.HAS_MANY,
-      relation: false
+      type: think.model.HAS_MANY
     }
   }
 
