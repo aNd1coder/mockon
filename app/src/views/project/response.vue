@@ -48,8 +48,10 @@
     <el-dialog title="字段描述" v-model="dialogVisible">
       <el-field-block v-for="(value, name) in flattenBody" :key="name" :response="response" :name="name"></el-field-block>
       <div v-if="apiModel.method === 'GET'" class="btn-backup">
-        <el-button type="primary" :disabled="disabled" :loading="disabled" @click="handleBindBackup">提交兜底服务数据</el-button>
-        <el-button :disabled="disabled" :loading="disabled" @click="handleUnbindBackup">禁用数据兜底服务</el-button>
+        <el-button type="primary" :disabled="disabled" :loading="disabled" @click="handleBindBackup">
+          {{ apiModel.backup_url ? '更新' : '接入' }}兜底服务
+        </el-button>
+        <el-button v-if="apiModel.backup_url" :disabled="disabled" :loading="disabled" @click="handleUnbindBackup">取消兜底服务</el-button>
       </div>
     </el-dialog>
     <el-dialog size="large" title="Mock 数据预览" v-model="dialogMockVisible">
@@ -161,7 +163,8 @@
         'createResponse',
         'updateResponse',
         'bindBackup',
-        'unBindBackup'
+        'unBindBackup',
+        'mutateApiBackupUrl'
       ]),
       handleSubmit() {
         this.$refs.response.validate(async(valid) => {
@@ -210,29 +213,44 @@
         let rules = jsonSchemaGenerator(body)
         let callback = this.response.jsonp_callback
         let type = callback ? 'jsonp' : 'cors'
-        let charset = 'utf-8'
-        let result = await this.bindBackup({
+        let charset = 'utf8'
+        let params = []
+
+        this.response.param.forEach(param => {
+          if (param.location === 'query') {
+            params.push(param.name + '=' + param.default_value)
+          }
+        })
+
+        // 追加参数
+        if (params.length > 0) {
+          url = url + (url.indexOf('?') !== -1 ? '' : '?') + params.join('&')
+        }
+
+        let data = {
+          api_id: this.apiModel.id,
           name,     // 接口名称
           url,      // 接口地址
           rules,    // 接口校验规则 json-schema
           callback, // 数据在京东云上，涉及跨域
           type,     // 接口类型，jsonp、cors两种，enum: ['jsonp', 'cors']
           charset,  // 接口编码
-        })
+        }
 
-        result.code = result.rtn
-        result.message = result.msg
+        // 更新
+        if (this.response.backup_url) {
+          data.backup = this.response.backup_url
+        }
+
+        let result = await this.bindBackup(data)
 
         showNotify(this, result, ctx => {
-          ctx.response.backup_url = result.data.backup
+          ctx.mutateApiBackupUrl(result.data.backup_url)
         })
       },
       async handleUnbindBackup() {
-        let backup = this.apiModel.url
-        let result = await this.unBindBackup({ backup })
-
-        result.code = result.rtn
-        result.message = result.msg
+        let backup = this.apiModel.backup_url
+        let result = await this.unBindBackup({ api_id: this.apiModel.id, backup })
 
         showNotify(this, result)
       },
@@ -293,7 +311,7 @@
             vm[option.field] = editor.getValue()
           })
 
-          content = true === option.refresh ? (editor.getValue() || '{}') : this.response[option.field]
+          content = true === option.refresh ? (editor.getValue() || '{}') : (this.response[option.field] || '')
         } else {
           content = option.content
         }

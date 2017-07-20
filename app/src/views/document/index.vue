@@ -99,9 +99,7 @@
       <div v-if="api && api.id" class="body-inner">
         <div class="document-header">
           <i class="fa fa-align-justify" @click="withSummary = !withSummary"></i>
-          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: base64Encode(api.id) } }"
-                       class="fa fa-pencil-square-o"> 编辑接口
-          </router-link>
+          <router-link :to="{ name: 'project-api-edit', params: { code: api.project.code, id: base64Encode(api.id) } }" class="fa fa-pencil-square-o"> 编辑接口</router-link>
         </div>
         <div class="page-wrapper">
           <div class="page-inner">
@@ -110,7 +108,7 @@
                 <el-tag type="gray">{{ statusMap[api.status] }}</el-tag>
               </h1>
               <div class="page-meta">
-                <el-user-block :user="api.user" :size="20"></el-user-block>
+                <el-user-block :user="api.user" :size="20" :fontSize="25"></el-user-block>
                 {{ api.modified_at | dateformat }}编辑过该接口文档
               </div>
               <blockquote v-html="marked(api.description)"></blockquote>

@@ -16,7 +16,8 @@
           'GET': 'primary',
           'POST': 'success',
           'PUT': 'warning',
-          'DELETE': 'danger'
+          'DELETE': 'danger',
+          'PATCH': 'gray'
         }
       }
     },
@@ -29,7 +30,6 @@
 </script>
 <style lang="scss" scoped>
   .el-tag {
-    width: 30px;
     padding: 0;
     margin-right: 5px;
     border: none;

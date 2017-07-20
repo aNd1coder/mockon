@@ -39,18 +39,39 @@ export default class extends Base {
     let action = params.action || ''
     let duplicate = action === 'duplicate'
     let user = this.userInfo()
-    let BACKUP_API = 'http://data.nohup.site/api/'
+    let BACKUP_API = 'http://192.168.193.32:9003/api/'
+    let label = action === 'bindbackup' ? '接入' : '取消'
 
     if (action === 'bindbackup' || action === 'unbindbackup') {
-      let result = await superAgent
-        .post(BACKUP_API + (action === 'bindbackup' ? 'data' : 'cancel'))
-        .set('Accept', 'application/json')
-        .send({ skey: '7cbd19e2da63253502a773e28bf9fc42', data })
+      try {
+        let api_id = data.api_id
 
-      if (Object.keys(result.body).length > 0) {
-        return this.success(result.body)
-      } else {
-        return this.fail('提交兜底服务数据失败')
+        delete data.api_id
+
+        let result = await superAgent
+          .post(BACKUP_API + (action === 'bindbackup' ? 'data' : 'cancel'))
+          .set({
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'User-Agent': 'MockonApi/v1.0'
+          })
+          .send({ skey: '7cbd19e2da63253502a773e28bf9fc42', data })
+
+        if (Object.keys(result.body).length > 0) {
+          if (result.body.rtn === 0) {
+            let backup_url = action === 'bindbackup' ? result.body.data.backup : ''
+
+            await this.model('api').where({ id: api_id }).update({ backup_url })
+
+            return this.success(action === 'bindbackup' ? { backup_url } : '取消成功')
+          } else {
+            return this.fail(result.body.msg)
+          }
+        } else {
+          return this.fail(`${label}兜底服务失败`)
+        }
+      } catch (e) {
+        return this.fail(`[${label}兜底服务失败]${e}`)
       }
     }
 

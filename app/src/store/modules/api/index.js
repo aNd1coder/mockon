@@ -9,17 +9,17 @@ const initialState = {
 }
 
 const mutations = {
-  [types.FETCH_APIS](state, payload){
+  [types.FETCH_APIS](state, payload) {
     state.items = payload
   },
-  [types.FETCH_API](state, payload){
+  [types.FETCH_API](state, payload) {
     state.current = payload
   },
-  [types.CREATE_API](state, payload){
+  [types.CREATE_API](state, payload) {
     state.current = payload
     state.items.push(payload)
   },
-  [types.UPDATE_API](state, payload){
+  [types.UPDATE_API](state, payload) {
     state.current = payload
 
     state.items.forEach((item, index) => {
@@ -28,11 +28,14 @@ const mutations = {
       }
     })
   },
-  [types.DELETE_API](state, payload){
+  [types.UPDATE_API_BACKUP_URL](state, payload) {
+    state.current.backup_url = payload
+  },
+  [types.DELETE_API](state, payload) {
     state.current = null
     state.items.splice(state.items.indexOf(payload), 1)
   },
-  [types.APPEND_API_RESPONSE](state, payload){
+  [types.APPEND_API_RESPONSE](state, payload) {
     if (state.current.id === payload.api_id) {
       if (state.current.response) {
         state.current.response.push(payload)
@@ -41,7 +44,7 @@ const mutations = {
       }
     }
   },
-  [types.DELETE_API_RESPONSE](state, payload){
+  [types.DELETE_API_RESPONSE](state, payload) {
     if (state.current.id === payload.api_id) {
       state.current.response.forEach((response, index) => {
         if (response.id === payload.id) {
@@ -50,7 +53,7 @@ const mutations = {
       })
     }
   },
-  [types.UPDATE_API_RESPONSE](state, payload){
+  [types.UPDATE_API_RESPONSE](state, payload) {
     if (state.current.id === payload.api_id) {
       state.current.response.forEach((response, index) => {
         if (response.id === payload.id) {
@@ -59,7 +62,7 @@ const mutations = {
       })
     }
   },
-  [types.APPEND_API_RESPONSE_PARAM](state, payload){
+  [types.APPEND_API_RESPONSE_PARAM](state, payload) {
     if (state.current.id === payload.api_id) {
       state.current.response.forEach((response, index) => {
         if (response.id === payload.response_id) {
@@ -72,7 +75,7 @@ const mutations = {
       })
     }
   },
-  [types.DELETE_API_RESPONSE_PARAM](state, payload){
+  [types.DELETE_API_RESPONSE_PARAM](state, payload) {
     if (state.current.id === payload.api_id) {
       state.current.response.forEach((response, rIndex) => {
         if (response.id === payload.response_id) {
@@ -91,7 +94,7 @@ const mutations = {
       })
     }
   },
-  [types.UPDATE_API_RESPONSE_PARAM](state, payload){
+  [types.UPDATE_API_RESPONSE_PARAM](state, payload) {
     if (state.current.id === payload.api_id) {
       state.current.response.forEach((response, rIndex) => {
         if (response.id === payload.response_id) {
