@@ -2,6 +2,7 @@
 
 let userInfo = {}
 let logModelInstance
+let userModelInstance
 let memberModelInstance
 
 export default class extends think.controller.rest {
@@ -47,6 +48,18 @@ export default class extends think.controller.rest {
     user_id = user_id || userInfo.id
 
     logModelInstance = this.model('log')
+    userModelInstance = this.model('user')
+
+    // 通知其他成员
+    if (project_id !== 0) {
+      let members = memberModelInstance.where({ project_id }).select()
+
+      for (let member of members) {
+        if (member.user_id !== user_id) {
+          userModelInstance.where({ id: member.user_id }).update({ has_unread_notification: 1 })
+        }
+      }
+    }
 
     return await logModelInstance.add({
       description,

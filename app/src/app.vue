@@ -9,9 +9,11 @@
         </div>
         <el-menu v-if="signedIn" class="el-menu-right" mode="horizontal">
           <el-menu-item index="1">
-            <router-link :to="{ name: 'notification' }">
-              <i class="fa fa-bell-o"></i>消息
-            </router-link>
+            <el-badge is-dot :hidden="!hasUreadNotification">
+              <router-link :to="{ name: 'notification' }">
+                <i class="fa fa-bell-o"></i>
+              </router-link>
+            </el-badge>
           </el-menu-item>
           <el-submenu index="2">
             <template slot="title">
@@ -47,13 +49,18 @@
   </section>
 </template>
 <script type="text/babel">
-  import { mapGetters } from 'vuex'
+  import { mapGetters, mapActions } from 'vuex'
   import ElUserBlock from './components/user-block.vue'
 
   export default {
     name: 'app',
     components: { ElUserBlock },
-    computed: mapGetters(['signedIn', 'session'])
+    computed: mapGetters(['signedIn', 'session', 'hasUreadNotification']),
+    async mounted() {
+      let result = await this.fetchUser({ id: this.session.id })
+      this.mutateHasUreadNotification(result.data.has_unread_notification)
+    },
+    methods: mapActions(['fetchUser', 'mutateHasUreadNotification'])
   }
 </script>
 <style lang="scss">
@@ -170,8 +177,12 @@
     }
 
     .el-badge__content.is-dot {
-      top: 25px;
-      right: 20px;
+      top: 22px;
+      right: 28px;
+    }
+
+    .fa-bell-o {
+      font-size: 18px;
     }
 
     .el-user-block {

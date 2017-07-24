@@ -48,6 +48,10 @@ export async function updateUser({ commit }, payload) {
   return result.body
 }
 
+export async function mutateHasUreadNotification({ commit }, payload) {
+  commit(types.MUTATE_HAS_UNREAD_NOTIFICATION, payload)
+}
+
 export async function signIn({ commit }, payload) {
   let result = await Vue.http.post('user', { action: 'signin', ...payload })
   let data = result.body.data

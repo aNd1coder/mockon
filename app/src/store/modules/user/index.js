@@ -9,6 +9,7 @@ const initialState = {
   items: [],
   current: {},
   session,
+  hasUreadNotification: 0,
   token
 }
 
@@ -23,6 +24,9 @@ const mutations = {
     localStorage.setItem('userInfo', JSON.stringify(payload))
     state.current = payload
     state.session = payload
+  },
+  [types.MUTATE_HAS_UNREAD_NOTIFICATION](state, payload) {
+    state.hasUreadNotification = payload
   },
   [types.SESSION_SIGNIN](state, payload) {
     if (payload.token) {

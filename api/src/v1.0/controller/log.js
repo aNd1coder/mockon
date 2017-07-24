@@ -6,9 +6,15 @@ export default class extends Base {
   async getAction() {
     let data
     let params = this.get()
+    let action = params.action || ''
     let page = params.page || 1
     let limit = params.limit || 10
+    let userInfo = this.userInfo()
     let where = {}
+
+    delete params.action
+    delete params.page
+    delete params.limit
 
     if (this.id) {
       let pk = await this.modelInstance.getPk()
@@ -16,15 +22,22 @@ export default class extends Base {
       return this.success(data)
     }
 
-    delete params.page
-    delete params.limit
+    where = { ...params }
 
-    for (let field in params) {
-      if (field === 'title') {
-        where[field] = ["like", `%${params[field]}%`]
-      } else {
-        where[field] = params[field]
+    if ('notification' === action) {
+      let members = await this.model('member').where({ user_id: userInfo.id }).select()
+      let ids = []
+
+      for (let member of members) {
+        ids.push(member.project_id)
       }
+
+      if (ids.length > 0) {
+        where.project_id = ['IN', ids]
+        where.user_id = ['!=', userInfo.id]
+      }
+
+      await this.model('user').where({ id: userInfo.id }).update({ has_unread_notification: 0 })
     }
 
     data = await this.modelInstance
