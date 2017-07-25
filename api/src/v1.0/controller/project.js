@@ -260,6 +260,7 @@ export default class extends Base {
       let info = swaggerDocument.info
       let schemes = swaggerDocument.schemes
       let paths = swaggerDocument.paths
+
       let _module = { "name": '默认分组', "code": 'default', project_id }
       let modules = await moduleModelInstance.where(_module).select()
 
@@ -285,7 +286,7 @@ export default class extends Base {
           let api = apis[method]
           let url = data.base_url + path
           method = method.toUpperCase()
-          let _apis = await apiModelInstance.where({ method, url }).select()
+          let _apis = await apiModelInstance.where({ project_id, module_id, method, url }).select()
           let _api = {
             name: api.summary,
             description: api.description,

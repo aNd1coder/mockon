@@ -52,11 +52,11 @@ export default class extends think.controller.rest {
 
     // 通知其他成员
     if (project_id !== 0) {
-      let members = memberModelInstance.where({ project_id }).select()
+      let members = await memberModelInstance.where({ project_id }).select()
 
       for (let member of members) {
         if (member.user_id !== user_id) {
-          userModelInstance.where({ id: member.user_id }).update({ has_unread_notification: 1 })
+          await userModelInstance.where({ id: member.user_id }).update({ has_unread_notification: 1 })
         }
       }
     }

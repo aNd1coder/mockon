@@ -28,9 +28,6 @@ const mutations = {
       }
     })
   },
-  [types.UPDATE_API_BACKUP_URL](state, payload) {
-    state.current.backup_url = payload
-  },
   [types.DELETE_API](state, payload) {
     state.current = null
     state.items.splice(state.items.indexOf(payload), 1)

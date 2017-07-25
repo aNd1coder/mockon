@@ -42,11 +42,16 @@ export default class extends Base {
     let BACKUP_API = 'http://192.168.193.32:9003/api/'
     let label = action === 'bindbackup' ? '接入' : '取消'
 
+    if (!await this.memberOf(data.project_id)) {
+      return this.fail('NOT_MEMBER')
+    }
+
     if (action === 'bindbackup' || action === 'unbindbackup') {
       try {
-        let api_id = data.api_id
+        let response_id = data.response_id
 
-        delete data.api_id
+        delete data.project_id
+        delete data.response_id
 
         let result = await superAgent
           .post(BACKUP_API + (action === 'bindbackup' ? 'data' : 'cancel'))
@@ -61,7 +66,7 @@ export default class extends Base {
           if (result.body.rtn === 0) {
             let backup_url = action === 'bindbackup' ? result.body.data.backup : ''
 
-            await this.model('api').where({ id: api_id }).update({ backup_url })
+            await model.where({ id: response_id }).update({ backup_url })
 
             return this.success(action === 'bindbackup' ? { backup_url } : '取消成功')
           } else {
@@ -73,10 +78,6 @@ export default class extends Base {
       } catch (e) {
         return this.fail(`[${label}兜底服务失败]${e}`)
       }
-    }
-
-    if (!await this.memberOf(data.project_id)) {
-      return this.fail('NOT_MEMBER')
     }
 
     delete data[pk]

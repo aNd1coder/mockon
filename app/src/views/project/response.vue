@@ -27,6 +27,9 @@
         </el-button-group>
         <div class="editor" ref="editor"></div>
       </el-form-item>
+      <el-form-item label="兜底数据连接" prop="backup_url">
+        <el-input type="text" v-model="response.backup_url" readonly placeholder="当接口请求失败时用来保证页面正常展示的兜底数据"></el-input>
+      </el-form-item>
       <el-form-item label="Mock 模版">
         <template slot="label">Mock 模版（可注入 Mock 链接中的参数，<a href="http://mockjs.com/examples.html" target="_blank">查看 Mockjs 示例</a>）</template>
         <el-button-group>
@@ -47,11 +50,11 @@
     </el-form>
     <el-dialog title="字段描述" v-model="dialogVisible">
       <el-field-block v-for="(value, name) in flattenBody" :key="name" :response="response" :name="name"></el-field-block>
-      <div v-if="apiModel.method === 'GET'" class="btn-backup">
+      <div v-if="apiModel.method === 'GET' && response.id" class="btn-backup">
         <el-button type="primary" :disabled="disabled" :loading="disabled" @click="handleBindBackup">
-          {{ apiModel.backup_url ? '更新' : '接入' }}兜底服务
+          {{ response.backup_url ? '更新' : '接入' }}兜底服务
         </el-button>
-        <el-button v-if="apiModel.backup_url" :disabled="disabled" :loading="disabled" @click="handleUnbindBackup">取消兜底服务</el-button>
+        <el-button v-if="response.backup_url" :disabled="disabled" :loading="disabled" @click="handleUnbindBackup">取消兜底服务</el-button>
       </div>
     </el-dialog>
     <el-dialog size="large" title="Mock 数据预览" v-model="dialogMockVisible">
@@ -111,6 +114,7 @@
           enctype: 'application/json',
           jsonp_callback: '',
           body: '{}',
+          backup_url: '',
           template: ''
         },
         rules: {
@@ -163,8 +167,7 @@
         'createResponse',
         'updateResponse',
         'bindBackup',
-        'unBindBackup',
-        'mutateApiBackupUrl'
+        'unBindBackup'
       ]),
       handleSubmit() {
         this.$refs.response.validate(async(valid) => {
@@ -228,7 +231,8 @@
         }
 
         let data = {
-          api_id: this.apiModel.id,
+          project_id: this.project.id,
+          response_id: this.response.id,
           name,     // 接口名称
           url,      // 接口地址
           rules,    // 接口校验规则 json-schema
@@ -244,13 +248,19 @@
 
         let result = await this.bindBackup(data)
 
-        showNotify(this, result, ctx => {
-          ctx.mutateApiBackupUrl(result.data.backup_url)
-        })
+        this.response.backup_url = result.data.backup_url
+
+        showNotify(this, result)
       },
       async handleUnbindBackup() {
-        let backup = this.apiModel.backup_url
-        let result = await this.unBindBackup({ api_id: this.apiModel.id, backup })
+        let backup = this.response.backup_url
+        let result = await this.unBindBackup({
+          project_id: this.project.id,
+          response_id: this.response.id,
+          backup
+        })
+
+        this.response.backup_url = ''
 
         showNotify(this, result)
       },
@@ -299,7 +309,7 @@
         editor.getSession().setMode(`ace/mode/${option.mode}`)
         editor.getSession().setTabSize(2)
         editor.setTheme(`ace/theme/${option.theme}`)
-        editor.setOptions({ maxLines: Infinity, minLines: 5 })
+        editor.setOptions({ maxLines: 20, minLines: 10 })
         editor.setShowPrintMargin(false)
 
         if (option.readonly && option.readonly === false) {
@@ -375,7 +385,6 @@
   }
   .editor, .template {
     width: 100%;
-    min-height: 150px;
     border: 1px solid #c0ccda;
   }
   .refresh {

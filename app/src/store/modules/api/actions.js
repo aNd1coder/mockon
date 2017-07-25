@@ -78,7 +78,3 @@ export async function updateApi({ commit }, payload) {
 
   return result.body
 }
-
-export async function mutateApiBackupUrl({ commit }, payload) {
-  commit(types.UPDATE_API_BACKUP_URL, payload)
-}

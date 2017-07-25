@@ -36,9 +36,6 @@
               <el-option v-for="status in statusMap" :key="status.value" :label="status.text" :value="status.value"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="兜底数据连接" prop="backup_url">
-            <el-input type="text" v-model="model.backup_url" readonly placeholder="当接口请求失败时用来保证页面正常展示的兜底数据"></el-input>
-          </el-form-item>
           <el-form-item>
             <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存接口信息</el-button>
           </el-form-item>
