@@ -1,48 +1,52 @@
 <template>
-  <section>
+  <section v-loading.fullscreen.lock="loading">
     <el-form :model="response" :rules="rules" ref="response" @submit.native.prevent="handleSubmit">
       <el-form-item label="响应描述" prop="description">
         <el-input v-model="response.description"></el-input>
       </el-form-item>
-      <el-form-item label="编码类型" prop="enctype">
-        <el-select v-model="response.enctype" placeholder="请选择编码类型">
-          <el-option v-for="enctype in FORM_ENCTYPE" :key="enctype" :label="enctype" :value="enctype"></el-option>
-        </el-select>
-      </el-form-item>
-      <el-form-item label="JSONP Callback 名称" prop="jsonp_callback">
-        <el-input v-model="response.jsonp_callback" placeholder="非空则为 JSONP 响应"></el-input>
-      </el-form-item>
-      <el-form-item label="请求参数">
-        <el-param v-if="response && response.id" v-for="(param, index) in response.param" :key="param.id" :response="response" :data="param"></el-param>
-        <el-param :response="response && response.id ? response : {}"></el-param>
-      </el-form-item>
-      <el-form-item label="响应内容（文档展示）">
-        <el-button-group>
-          <el-button type="primary" size="small" :plain="true" @click="handleFormat">
-            <i class="fa fa-code"></i>格式化
-          </el-button>
-          <el-button type="primary" size="small" :plain="true" @click="handleComment">
-            <i class="fa fa-pencil"></i>字段描述
-          </el-button>
-        </el-button-group>
-        <div class="editor" ref="editor"></div>
-      </el-form-item>
-      <el-form-item label="兜底数据连接" prop="backup_url">
-        <el-input type="text" v-model="response.backup_url" readonly placeholder="当接口请求失败时用来保证页面正常展示的兜底数据"></el-input>
-      </el-form-item>
-      <el-form-item label="Mock 模版">
-        <template slot="label">Mock 模版（可注入 Mock 链接中的参数，<a href="http://mockjs.com/examples.html" target="_blank">查看 Mockjs 示例</a>）</template>
-        <el-button-group>
-          <el-button type="primary" size="small" :plain="true" @click="handlePreview">
-            <i class="fa fa-eye"></i>数据预览
-          </el-button>
-        </el-button-group>
-        <div class="template" ref="template"></div>
-      </el-form-item>
-      <el-form-item label="响应类型" prop="type">
-        <el-select v-model="response.type" placeholder="请选择响应类型">
-          <el-option v-for="(label, type) in RESPONSE_TYPE" :key="type" :label="label" :value="type"></el-option>
-        </el-select>
+      <el-form-item v-if="response && response.id">
+        <el-form-item label="编码类型" prop="enctype">
+          <el-select v-model="response.enctype" placeholder="请选择编码类型">
+            <el-option v-for="enctype in FORM_ENCTYPE" :key="enctype" :label="enctype" :value="enctype"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="JSONP Callback 名称" prop="jsonp_callback">
+          <el-input v-model="response.jsonp_callback" placeholder="非空则为 JSONP 响应"></el-input>
+        </el-form-item>
+        <el-form-item label="请求参数">
+          <el-param v-if="response && response.id" v-for="(param, index) in response.param" :key="param.id"
+                    :response="response" :data="param"></el-param>
+          <el-param :response="response && response.id ? response : {}"></el-param>
+        </el-form-item>
+        <el-form-item label="响应内容（文档展示）">
+          <el-button-group>
+            <el-button type="primary" size="small" :plain="true" @click="handleFormat">
+              <i class="fa fa-code"></i>格式化
+            </el-button>
+            <el-button type="primary" size="small" :plain="true" @click="handleComment">
+              <i class="fa fa-pencil"></i>字段描述
+            </el-button>
+          </el-button-group>
+          <div class="editor" ref="editor"></div>
+        </el-form-item>
+        <el-form-item label="兜底数据连接" prop="backup_url">
+          <el-input type="text" v-model="response.backup_url" readonly placeholder="当接口请求失败时用来保证页面正常展示的兜底数据"></el-input>
+        </el-form-item>
+        <el-form-item label="Mock 模版">
+          <template slot="label">Mock 模版（可注入 Mock 链接中的参数，<a href="http://mockjs.com/examples.html" target="_blank">查看 Mockjs 示例</a>）
+          </template>
+          <el-button-group>
+            <el-button type="primary" size="small" :plain="true" @click="handlePreview">
+              <i class="fa fa-eye"></i>数据预览
+            </el-button>
+          </el-button-group>
+          <div class="template" ref="template"></div>
+        </el-form-item>
+        <el-form-item label="响应类型" prop="type">
+          <el-select v-model="response.type" placeholder="请选择响应类型">
+            <el-option v-for="(label, type) in RESPONSE_TYPE" :key="type" :label="label" :value="type"></el-option>
+          </el-select>
+        </el-form-item>
       </el-form-item>
       <el-form-item>
         <el-button native-type="submit" type="primary" :disabled="disabled" :loading="disabled">保存响应信息</el-button>
@@ -99,10 +103,11 @@
       return {
         FORM_ENCTYPE,
         RESPONSE_TYPE,
+        loading: false,
         disabled: false,
         dialogVisible: false,
         dialogMockVisible: false,
-        body: '',
+        body: '{}',
         template: '',
         mockData: '',
         flattenBody: {},
@@ -120,9 +125,6 @@
         rules: {
           description: [
             { required: true, message: '请输入响应名称', trigger: 'blur' }
-          ],
-          enctype: [
-            { required: true, message: '请选择编码类型', trigger: 'blur' }
           ],
           type: [
             { required: true, message: '请输入响应类型', trigger: 'blur' }
@@ -148,22 +150,10 @@
     mounted() {
       this.newResponse = JSON.parse(JSON.stringify(this.response))
       this.loadData()
-      this.initEditor({
-        ref: 'editor',
-        field: 'body',
-        mode: 'json',
-        theme: 'tomorrow'
-      })
-
-      this.initEditor({
-        ref: 'template',
-        field: 'template',
-        mode: 'ejs',
-        theme: 'tomorrow'
-      })
     },
     methods: {
       ...mapActions([
+        'fetchFields',
         'createResponse',
         'updateResponse',
         'bindBackup',
@@ -205,9 +195,19 @@
           })
         }
       },
-      handleComment() {
-        this.flattenBody = flattenObject(JSON.parse(this.response.body))
+      async handleComment() {
+        let body = JSON.parse(this.body)
+        let toString = Object.prototype.toString
+
+        if (toString.call(body) === '[object Array]') {
+          body = body.length > 0 ? body[0] : {}
+        }
+
         this.dialogVisible = true
+        this.loading = true
+        await this.fetchFields({ project_id: this.project.id })
+        this.loading = false
+        this.flattenBody = flattenObject(body)
       },
       async handleBindBackup() {
         let name = this.apiModel.name + this.response.description
@@ -248,9 +248,9 @@
 
         let result = await this.bindBackup(data)
 
-        this.response.backup_url = result.data.backup_url
-
-        showNotify(this, result)
+        showNotify(this, result, ctx => {
+          ctx.response.backup_url = result.data.backup_url
+        })
       },
       async handleUnbindBackup() {
         let backup = this.response.backup_url
@@ -297,6 +297,22 @@
         if (this.data && this.data.id) {
           this.response = JSON.parse(JSON.stringify(this.data))
           this.response.body = this.response.body || '{}'
+          this.body = JSON.parse(JSON.stringify(this.response.body))
+
+          setTimeout(_ => {
+            this.initEditor({
+              ref: 'editor',
+              field: 'body',
+              mode: 'json',
+              theme: 'tomorrow'
+            })
+            this.initEditor({
+              ref: 'template',
+              field: 'template',
+              mode: 'ejs',
+              theme: 'tomorrow'
+            })
+          }, 0)
         }
       },
       initEditor(option) {

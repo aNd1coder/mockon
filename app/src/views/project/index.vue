@@ -1,8 +1,9 @@
 <template>
   <el-row :gutter="20" v-loading.fullscreen.lock="loading">
     <el-col class="el-col-search" :span="24">
-      <el-input v-model="keyword" placeholder="请输入关键词..." icon="search"></el-select>
-      </el-input>
+      <el-tooltip content="可粘贴 Mock 地址快速跳转到编辑页" placement="top">
+        <el-input v-model="keyword" placeholder="请输入..." icon="search" @input="handleSearch"></el-input>
+      </el-tooltip>
     </el-col>
     <el-col v-for="project in filteredProject" :key="project.id" :span="6">
       <el-project-block :project="project"></el-project-block>
@@ -14,6 +15,8 @@
 </template>
 <script type="text/babel">
   import { mapGetters, mapActions } from 'vuex'
+  import { MOCK_URL } from '../../config'
+  import { base64Encode, base64Decode } from '../../utils'
   import ElProjectBlock from '../../components/project-block.vue'
   import ElNodata from '../../components/nodata.vue'
 
@@ -22,14 +25,18 @@
       ElProjectBlock,
       ElNodata
     },
-    data(){
+    data() {
       return {
         loading: true,
         keyword: ''
       }
     },
     computed: {
-      ...mapGetters(['session', 'projects']),
+      ...mapGetters([
+        'projects',
+        'project',
+        'response'
+      ]),
       filteredProject() {
         return this.projects.filter(project => {
           let fields = ['name', 'code', 'description']
@@ -51,7 +58,32 @@
         vm.loading = false
       })
     },
-    methods: mapActions(['fetchProjects'])
+    methods: {
+      ...mapActions([
+        'fetchProjects',
+        'fetchProject',
+        'fetchResponse'
+      ]),
+      async handleSearch() {
+        if (this.keyword.indexOf(MOCK_URL) === 0) {
+          let id = base64Decode(this.keyword.replace(MOCK_URL, ''))
+          this.loading = true
+
+          await this.fetchResponse({ id })
+          await this.fetchProject({ id: this.response.project_id })
+          this.loading = false
+          this.$router.push({
+            name: 'project-api-edit',
+            params: {
+              code: this.project.code,
+              id: base64Encode(this.response.api_id),
+              response_id: id
+            }
+          })
+          this.keyword = ''
+        }
+      }
+    }
   }
 </script>
 <style lang="scss" scoped>
@@ -62,8 +94,5 @@
   }
   .el-col-search {
     margin-bottom: 10px;
-  }
-  .el-select {
-    width: 130px;
   }
 </style>

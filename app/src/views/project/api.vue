@@ -96,7 +96,6 @@
           'preview',
         ],
         description: '',
-        fieldsData: [],
         statusMap: [
           { text: '开发中', value: 0 },
           { text: '使用中', value: 1 },
@@ -165,7 +164,6 @@
         'duplicateResponse',
         'deleteResponse',
         'fetchParams',
-        'fetchFields',
         'fetchErrors',
         'appendApiError'
       ]),
@@ -204,7 +202,6 @@
           await this.fetchErrors({ project_id: this.project.id, api_id })
         } else if (tab.name === 'response') {
           await this.fetchParams({ project_id: this.project.id })
-          await this.fetchFields({ project_id: this.project.id })
         }
 
         this.loading = false
@@ -240,20 +237,29 @@
           }
         })
       },
-      selectTab(last) {
+      selectTab(last, response_id) {
         let index = 0, count
+
         if (this.api.response && this.api.response.length > 0) {
           count = this.api.response.length
+
+          if (response_id) {
+            this.editableTabsValue = `${response_id}`
+            return false
+          }
+
           if (last === true) {
             index = count - 1
           }
-          this.editableTabsValue = this.api.response[index].id + ''
+
+          this.editableTabsValue = `${this.api.response[index].id}`
         } else {
           this.editableTabsValue = 'new'
         }
       },
       async loadData() {
         let id = this.$route.params.id
+        let response_id = this.$route.params.response_id
 
         this.loading = true
 
@@ -266,6 +272,13 @@
           await this.fetchApi({ id })
 
           this.model = JSON.parse(JSON.stringify(this.api))
+
+          if (response_id) {
+            this.activeName = 'response'
+            setTimeout(_ => {
+              this.selectTab(false, response_id)
+            }, 100)
+          }
         } else {
           this.model = JSON.parse(JSON.stringify(this.newApi))
         }

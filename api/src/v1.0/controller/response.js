@@ -47,36 +47,40 @@ export default class extends Base {
     }
 
     if (action === 'bindbackup' || action === 'unbindbackup') {
-      try {
-        let response_id = data.response_id
+      let response_id = data.response_id
 
-        delete data.project_id
-        delete data.response_id
+      delete data.project_id
+      delete data.response_id
 
-        let result = await superAgent
-          .post(BACKUP_API + (action === 'bindbackup' ? 'data' : 'cancel'))
-          .set({
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'User-Agent': 'MockonApi/v1.0'
+      let result = await superAgent
+        .post(BACKUP_API + (action === 'bindbackup' ? 'data' : 'cancel'))
+        .set({
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'User-Agent': 'MockonApi/v1.0'
+        })
+        .send({ skey: '7cbd19e2da63253502a773e28bf9fc42', data })
+        .catch(error => {
+          let body = JSON.parse(JSON.stringify(error.response.body))
+          let message = JSON.parse(body.msg).map(error => {
+            return error.message
           })
-          .send({ skey: '7cbd19e2da63253502a773e28bf9fc42', data })
 
-        if (Object.keys(result.body).length > 0) {
-          if (result.body.rtn === 0) {
-            let backup_url = action === 'bindbackup' ? result.body.data.backup : ''
+          return this.fail(message.join('，'))
+        })
 
-            await model.where({ id: response_id }).update({ backup_url })
+      if (Object.keys(result.body).length > 0) {
+        if (result.body.rtn === 0) {
+          let backup_url = action === 'bindbackup' ? result.body.data.backup : ''
 
-            return this.success(action === 'bindbackup' ? { backup_url } : '取消成功')
-          } else {
-            return this.fail(result.body.msg)
-          }
+          await model.where({ id: response_id }).update({ backup_url })
+
+          return this.success(action === 'bindbackup' ? { backup_url } : '取消成功')
         } else {
-          return this.fail(`${label}兜底服务失败`)
+          return this.fail(result.body.msg)
         }
-      } catch (e) {
-        return this.fail(`[${label}兜底服务失败]${e}`)
+      } else {
+        return this.fail(`${label}兜底服务失败`)
       }
     }
 

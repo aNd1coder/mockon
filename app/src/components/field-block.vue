@@ -1,14 +1,11 @@
 <template>
-  <el-form :model="field" :rules="rules" ref="field" @submit.native.prevent="handleSubmit">
+  <el-form :model="field" :rules="rules" ref="field">
     <el-form-item prop="description">
-      <el-input class="el-input-group-field" v-model="field.description" placeholder="请输字段描述">
+      <el-input class="el-input-group-field" v-model="field.description" placeholder="请输描述，失去焦点自动保存" @blur="handleSubmit" :icon="icon">
         <template slot="prepend">
           {{ name }}
           <el-switch class="el-switch-share" v-model="share" on-text="共享" off-text="私有"></el-switch>
-          <el-switch class="el-switch-required" v-model="field.required" on-text="必需" off-text="可选"></el-switch>
-        </template>
-        <template slot="append">
-          <el-button native-type="submit" type="primary" :plain="true">保存</el-button>
+          <el-switch class="el-switch-required" v-model="required" on-text="必需" off-text="可选"></el-switch>
         </template>
       </el-input>
     </el-form-item>
@@ -54,8 +51,9 @@
     },
     data() {
       return {
-        disabled: false,
         share: false,
+        required: false,
+        icon: '',
         field: {
           id: '',
           description: '',
@@ -74,7 +72,7 @@
         if (field.name === this.name) {
           this.field = JSON.parse(JSON.stringify(field))
           this.share = this.field.api_id === 0 && this.field.response_id === 0
-          this.field.required = !!this.field.required
+          this.required = !!this.field.required
         }
       })
     },
@@ -85,12 +83,12 @@
           let result
 
           if (valid) {
-            this.disabled = true
+            this.icon = 'loading'
             this.field.name = this.name
             this.field.project_id = this.project.id
             this.field.api_id = this.share ? 0 : this.api.id
             this.field.response_id = this.share ? 0 : this.response.id
-            this.field.required = this.field.required ? 1 : 0
+            this.field.required = this.required ? 1 : 0
 
             if (this.field.id) {
               result = await this.updateField(this.field)
@@ -98,7 +96,7 @@
               result = await this.createField(this.field)
             }
 
-            this.disabled = false
+            this.icon = ''
 
             if (result.code === 0) {
               this.$notify.success({

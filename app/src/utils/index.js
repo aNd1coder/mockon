@@ -73,7 +73,7 @@ export function jsonFormat(body, fields, jsonp) {
         htmlObject += isArrayData ? (padding(level) + '{') : (buildAttr(attr, level) + ': {')
 
         if (empty) {
-          htmlObject += ',' + buildComment(attr) + '\n'
+          htmlObject += '},' + buildComment(attr) + '\n'
         } else {
           htmlObject += buildComment(attr) + '\n'
           htmlObject += build(value, _level)
@@ -115,7 +115,7 @@ export function jsonFormat(body, fields, jsonp) {
     let result = ''
 
     fields.forEach(field => {
-      if (field.name === attr) {
+      if (field.name === attr && field.description) {
         result = '<span class="hljs-comment"> //' + field.description + '</span>'
       }
     })
